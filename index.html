@@ -220,9 +220,9 @@ const RETURN_EMAIL = "taha.h@sindibad.iq";
 /* Automatic capture. Fill these two in and every finished test posts itself
    into the interviewer's Google Sheet. Left blank, the page falls back to the
    email / copy buttons on the last screen and nothing else changes. */
-const FORM_POST  = "";   /* https://docs.google.com/forms/d/e/<form id>/formResponse */
-const FORM_NAME  = "";   /* entry.<id> for the "Name" question   */
-const FORM_CODE  = "";   /* entry.<id> for the "Answers" question */
+const FORM_POST  = "https://docs.google.com/forms/d/e/1FAIpQLSdEJxW5VqL6N2LIDEi3Gp_yeF4QcvBw_N9XPtGgVWBaxnEAKA/formResponse";
+const FORM_NAME  = "entry.1260256454";   /* the form's "Name" question   */
+const FORM_CODE  = "entry.1468933398";   /* the form's "Answers" question */
 
 /* ============================ helpers ============================ */
 const useCap=n=>{try{return (window.claude&&window.claude.use)?window.claude.use(n):Promise.resolve(null);}catch(e){return Promise.resolve(null);}};

@@ -551,7 +551,7 @@ let STARTED=store.get("started",null);
 let step=store.get("step",-1);          // -1 = start screen, n = section index, 999 = results
 let RESULT=store.get("result",null);    // frozen at submit
 let timer=null, DB=null, SUB_ID=store.get("subid",null);
-let REVEAL=false, SAVE_ERR=null;
+let REVEAL=store.get("reveal",false), SAVE_ERR=null;
 
 useCap("db").then(d=>{DB=d;}).catch(()=>{});
 
@@ -928,7 +928,7 @@ function resultsScreen(R,readonly){
              const c=prompt("Interviewer code, to show the correct answers");
              if(c===null)return;
              if(c.trim().toUpperCase()!==REVIEW_CODE){alert("That code is not right.");return;}
-             REVEAL=true;buildDetail();
+             REVEAL=true;store.set("reveal",true);buildDetail();
            }},"Show correct answers")));
     det.append(el("p",{class:"small muted",style:"padding-bottom:10px"},
       rev?"Every question, the answer given, and the right one."
@@ -1046,13 +1046,64 @@ function detailRow(it,R,adj,reveal,mine){
   return n;
 }
 
+/* ---------- what the interviewer reads in the sheet ---------- */
+function reportLink(R){
+  const base=location.origin+location.pathname;
+  return base+"#r="+encodeURIComponent(encodeResult(R));
+}
+function buildSummary(R){
+  const adj=R.adjust||{};
+  const L=[];
+  let auto=0,autoMax=0,bonus=0,bonusMax=0;
+  const lines=[],wrong=[],written=[];
+  SECTIONS.forEach(s=>{
+    let e=0;
+    s.items.forEach(it=>{
+      const g=gradeItem(it,R.answers[it.id]);
+      const got=adj[it.id]!==undefined?adj[it.id]:g.e;
+      e+=got;
+      if(got<g.max)wrong.push(it.id);
+      if(it.type==="text")written.push({id:it.id,q:it.q.replace(/<[^>]+>/g,""),
+        a:(R.answers[it.id]||"").trim(),got:got,max:g.max});
+    });
+    e=Math.round(e*10)/10;
+    if(s.bonus){bonus+=e;bonusMax+=s.pts;}else{auto+=e;autoMax+=s.pts;}
+    lines.push("  "+(s.name+(s.bonus?" (bonus)":"")).padEnd(28," ")+String(e).padStart(5," ")+" / "+s.pts);
+  });
+  auto=Math.round(auto*10)/10;bonus=Math.round(bonus*10)/10;
+  const mins=R.durationSec?Math.round(R.durationSec/60):null;
+  const band=(auto+bonus)>=80?"STRONG":(auto+bonus)>=65?"WORKABLE":"BELOW THE BAR";
+  L.push("SCORE  "+(Math.round((auto+bonus)*10)/10)+" / "+autoMax+"   ("+band+")");
+  L.push((bonus?"including "+bonus+" of "+bonusMax+" bonus.   ":"")
+        +(mins!==null?"Took "+mins+" min.":"")+(R.timedOut?"  TIME RAN OUT.":""));
+  L.push("");
+  L.push("BY SECTION");
+  L.push.apply(L,lines);
+  L.push("");
+  L.push("WRITTEN ANSWERS - these are marked by words only, read them yourself");
+  written.forEach(w=>{
+    L.push("");
+    L.push("  ["+w.id+"  provisional "+w.got+" / "+w.max+"]  "+w.q);
+    L.push("  "+(w.a?w.a.replace(/\s*\n\s*/g," "):"(left blank)"));
+  });
+  L.push("");
+  L.push("DROPPED MARKS ON: "+(wrong.length?wrong.join(", "):"nothing, full marks"));
+  L.push("");
+  L.push("OPEN THE FULL MARKED REPORT (every question, side by side):");
+  L.push(reportLink(R));
+  L.push("");
+  L.push("--- result code, only needed if the link above will not open ---");
+  L.push(encodeResult(R));
+  return L.join("\n");
+}
+
 /* ---------- automatic capture ---------- */
 function captureConfigured(){return !!(FORM_POST&&FORM_CODE);}
 async function postToForm(R){
   /* Google answers a cross-site form post opaquely, so a resolved fetch is the
      only signal available. The copy and email buttons stay on screen regardless. */
   const body=new URLSearchParams();
-  body.append(FORM_CODE,encodeResult(R));
+  body.append(FORM_CODE,buildSummary(R));
   if(FORM_NAME)body.append(FORM_NAME,(R&&R.name)||store.get("name","")||"");
   await fetch(FORM_POST,{method:"POST",mode:"no-cors",body:body,
     headers:{"Content-Type":"application/x-www-form-urlencoded"}});
@@ -1176,6 +1227,7 @@ function openReviewer(){
   const code=prompt("Interviewer code");
   if(code===null)return;
   if(code.trim().toUpperCase()!==REVIEW_CODE){alert("That code is not right.");return;}
+  REVEAL=true;store.set("reveal",true);
   setStep(1000);
 }
 function reviewerScreen(){
@@ -1245,7 +1297,36 @@ $("#drawer").addEventListener("click",e=>{if(e.target.dataset.close!==undefined)
 document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#drawer").classList.remove("open");});
 
 $("#rb-btn").addEventListener("click",()=>setStep(1001));
-render();
+
+/* A link of the form  <page>#r=<result code>  opens that attempt already marked.
+   The correct answers stay behind the interviewer code, exactly as they do on a
+   candidate's own result screen. */
+function openFromHash(){
+  const m=/[#&]r=([^&]+)/.exec(location.hash||"");
+  if(!m)return false;
+  let R;
+  try{R=decodeResult(decodeURIComponent(m[1]));}
+  catch(e){
+    $("#app").innerHTML="";
+    $("#app").append(el("div",{class:"wrap stack g16",style:"padding-top:40px"},
+      el("h2",{},"That link did not carry a readable result"),
+      el("p",{class:"prose small muted"},"The address may have been cut short when it was copied. Open the sheet, copy the result code at the bottom of the row instead, and paste it into Open a result code."),
+      el("button",{class:"primary",onclick:()=>{location.hash="";setStep(-1);}},"Go to the start")));
+    return true;
+  }
+  if(!REVEAL){
+    const c=prompt("Interviewer code, to open this result");
+    if(c!==null&&c.trim().toUpperCase()===REVIEW_CODE){REVEAL=true;store.set("reveal",true);}
+  }
+  $("#app").innerHTML="";
+  $("#app").append(resultsScreen(R,REVEAL));
+  $("#refbtn").hidden=true;
+  renderPips();
+  window.scrollTo(0,0);
+  return true;
+}
+window.addEventListener("hashchange",()=>{if(!openFromHash())render();});
+if(!openFromHash())render();
 if(unsent())setTimeout(saveSubmission,500);
 </script>
 

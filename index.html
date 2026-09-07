@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Supplier Desk Starter Test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F2F5F1; --surface:#FBFCFA; --sunk:#EAEFE8; --bar:#E5EDE3;
+  --ink:#15242B; --ink-2:#33474E; --muted:#5E7073; --line:#CFDACD; --line-2:#DFE7DD;
+  --accent:#0F6A5B; --accent-soft:#DCEDE7; --accent-ink:#0A4A40;
+  --neg:#A32E22; --neg-soft:#F6E3E0;
+  --warn:#9A6A0D; --warn-soft:#F6EBD6;
+  --ok:#2E6B3E; --ok-soft:#E0EFE1;
+  --shadow:0 1px 2px rgba(20,40,45,.06),0 6px 18px rgba(20,40,45,.05);
+  --r:6px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1A1E; --surface:#16242A; --sunk:#111E22; --bar:#1A2B29;
+    --ink:#E3EDE7; --ink-2:#BACAC6; --muted:#8DA09F; --line:#2C3F43; --line-2:#233238;
+    --accent:#43C2A4; --accent-soft:#12332E; --accent-ink:#8FE0CB;
+    --neg:#F0907F; --neg-soft:#3A211D;
+    --warn:#DCA544; --warn-soft:#33280F;
+    --ok:#77C98A; --ok-soft:#15301C;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1A1E; --surface:#16242A; --sunk:#111E22; --bar:#1A2B29;
+  --ink:#E3EDE7; --ink-2:#BACAC6; --muted:#8DA09F; --line:#2C3F43; --line-2:#233238;
+  --accent:#43C2A4; --accent-soft:#12332E; --accent-ink:#8FE0CB;
+  --neg:#F0907F; --neg-soft:#3A211D;
+  --warn:#DCA544; --warn-soft:#33280F;
+  --ok:#77C98A; --ok-soft:#15301C;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.ui,button,select,input,label,th,.mono{font-family:Archivo,"Segoe UI",system-ui,sans-serif}
+.mono,.num,td.n,th.n{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+h1{font-size:1.9rem;line-height:1.15;font-weight:700;letter-spacing:-.02em;margin:0;text-wrap:balance}
+h2{font-size:1.28rem;font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h3{font-size:1rem;font-weight:600;margin:0}
+p{margin:0}
+a{color:var(--accent-ink)}
+.eyebrow{font-family:Archivo,sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+.prose{max-width:66ch}
+.stack{display:flex;flex-direction:column}
+.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}.g24{gap:24px}.g32{gap:32px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.tiny{font-size:.76rem}
+
+/* ---------- top rail ---------- */
+#rail{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--line);}
+#rail .wrap{display:flex;align-items:center;gap:14px;height:52px}
+.brand{font-family:Archivo,sans-serif;font-weight:700;font-size:.9rem;letter-spacing:-.01em;white-space:nowrap}
+.brand span{color:var(--accent);font-weight:600}
+.pips{display:flex;gap:4px;flex:1;min-width:0;overflow:hidden}
+.pip{height:5px;flex:1;min-width:6px;border-radius:3px;background:var(--line-2);transition:background .2s}
+.pip.done{background:var(--accent)}
+.pip.now{background:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+#clock{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:.95rem;font-weight:500;padding:3px 9px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--line-2);white-space:nowrap}
+#clock.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+#clock.crit{background:var(--neg-soft);border-color:var(--neg);color:var(--neg)}
+
+/* ---------- buttons ---------- */
+button{font-size:.9rem;font-weight:600;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 16px;cursor:pointer;transition:background .15s,border-color .15s}
+button:hover{border-color:var(--muted)}
+button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] button.primary,:root:not([data-theme="light"]) button.primary{color:#08211D}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) button.primary{color:#fff}}
+button.primary:hover{filter:brightness(1.07)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 10px}
+button.ghost:hover{color:var(--ink);background:var(--sunk)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.tiny{padding:4px 9px;font-size:.75rem}
+
+/* ---------- cards, panels ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:20px}
+.pad-s{padding:14px 16px}
+.note{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 var(--r) var(--r) 0;padding:14px 16px}
+.note.warn{background:var(--warn-soft);border-left-color:var(--warn)}
+.note.neg{background:var(--neg-soft);border-left-color:var(--neg)}
+
+/* ---------- question blocks ---------- */
+.q{border-top:1px solid var(--line-2);padding:22px 0}
+.q:first-of-type{border-top:0}
+.q-head{display:flex;gap:12px;align-items:baseline}
+.q-id{font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600;color:var(--accent);flex:none;padding-top:2px}
+.q-pts{margin-left:auto;flex:none;font-family:Archivo,sans-serif;font-size:.72rem;color:var(--muted);white-space:nowrap;padding-top:3px}
+.q-body{margin-top:12px}
+.opts{display:flex;flex-direction:column;gap:2px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:var(--r);cursor:pointer;border:1px solid transparent}
+.opt:hover{background:var(--sunk)}
+.opt input{margin:4px 0 0;accent-color:var(--accent);flex:none;width:15px;height:15px}
+.opt.sel{background:var(--accent-soft);border-color:var(--accent)}
+.opt span{font-size:.95rem}
+input[type=text],input[type=number],textarea,select{font-family:Archivo,sans-serif;font-size:.92rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
+input[type=number],input.num{font-family:"IBM Plex Mono",monospace;text-align:right;font-variant-numeric:tabular-nums}
+textarea{width:100%;min-height:96px;font-family:"Source Serif 4",Georgia,serif;font-size:.98rem;line-height:1.5;resize:vertical}
+.numwrap{display:inline-flex;align-items:center;gap:8px}
+.numwrap .unit{font-family:Archivo,sans-serif;font-size:.8rem;color:var(--muted)}
+select{cursor:pointer;max-width:100%}
+
+/* ---------- data tables ---------- */
+.tablewrap{border:1px solid var(--line);border-radius:var(--r);overflow:auto;max-height:340px;background:var(--surface)}
+.tablewrap.tall{max-height:420px}
+table{border-collapse:collapse;width:100%;font-size:.8rem}
+thead th{position:sticky;top:0;z-index:1;background:var(--ink);color:var(--paper);font-family:Archivo,sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;text-align:left;padding:7px 9px;white-space:nowrap}
+tbody td{padding:5px 9px;border-top:1px solid var(--line-2);vertical-align:top}
+tbody tr:nth-child(even){background:var(--bar)}
+td.n,th.n{text-align:right;white-space:nowrap}
+td.neg{color:var(--neg)}
+td.ar{font-family:"Segoe UI",Tahoma,sans-serif;direction:rtl;text-align:right;white-space:nowrap}
+.hl{box-shadow:inset 3px 0 0 var(--accent)}
+.cap{font-size:.78rem;color:var(--muted);margin-top:6px}
+
+/* grid questions */
+.gridq{border:1px solid var(--line);border-radius:var(--r);overflow:auto;background:var(--surface)}
+.gridq table{font-size:.82rem}
+.gridq td{vertical-align:middle}
+.gridq select,.gridq input{font-size:.82rem;padding:5px 7px;width:100%}
+.gridq td.ctl{min-width:150px}
+
+/* ---------- reference drawer ---------- */
+#refbtn{position:fixed;right:18px;bottom:18px;z-index:50;box-shadow:var(--shadow)}
+#drawer{position:fixed;inset:0;z-index:60;display:none}
+#drawer.open{display:block}
+#drawer .scrim{position:absolute;inset:0;background:rgba(10,25,28,.45)}
+#drawer .sheet{position:absolute;right:0;top:0;bottom:0;width:min(440px,92vw);background:var(--surface);border-left:1px solid var(--line);overflow:auto;padding:22px}
+
+#recoverbar{position:sticky;top:52px;z-index:35;background:var(--warn-soft);border-bottom:1px solid var(--warn)}
+#recoverbar .wrap{display:flex;align-items:center;gap:10px;padding-top:9px;padding-bottom:9px;font-family:Archivo,sans-serif;font-size:.84rem;color:var(--warn)}
+#recoverbar .rb-dot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex:none}
+#recoverbar button{margin-left:auto;border-color:var(--warn);color:var(--warn);background:transparent}
+#recovbox{width:100%;min-height:150px;font-family:"IBM Plex Mono",monospace;font-size:.72rem;line-height:1.45;white-space:pre;overflow:auto}
+/* ---------- results ---------- */
+.scorehead{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.bignum{font-family:Archivo,sans-serif;font-size:3.6rem;font-weight:700;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:Archivo,sans-serif;font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:100px;border:1px solid}
+.chip.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.chip.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.chip.neg{background:var(--neg-soft);border-color:var(--neg);color:var(--neg)}
+.chip.plain{background:var(--sunk);border-color:var(--line);color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:9px}
+.barrow{display:grid;grid-template-columns:1fr 132px 62px;gap:12px;align-items:center}
+.barrow .lbl{font-family:Archivo,sans-serif;font-size:.85rem}
+.track{height:9px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:5px}
+.fill.low{background:var(--neg)}
+.fill.mid{background:var(--warn)}
+.barrow .val{font-family:"IBM Plex Mono",monospace;font-size:.8rem;text-align:right;color:var(--muted)}
+.rev{border-top:1px solid var(--line-2);padding:16px 0}
+.rev:first-child{border-top:0}
+.mark{font-family:"IBM Plex Mono",monospace;font-size:.74rem;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.mark.ok{background:var(--ok-soft);color:var(--ok)}
+.mark.part{background:var(--warn-soft);color:var(--warn)}
+.mark.no{background:var(--neg-soft);color:var(--neg)}
+.ans{font-size:.92rem;padding:8px 11px;border-radius:var(--r);background:var(--sunk);white-space:pre-wrap}
+.ansmodel{font-size:.92rem;padding:8px 11px;border-radius:var(--r);background:var(--accent-soft);border-left:3px solid var(--accent)}
+details>summary{cursor:pointer;list-style:none;font-family:Archivo,sans-serif;font-weight:600;font-size:.95rem;padding:11px 0;border-top:1px solid var(--line-2);display:flex;align-items:center;gap:10px}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸";color:var(--muted);font-size:.8rem;transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+.stepper{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stepper button{border:0;border-radius:0;padding:4px 9px;font-size:.78rem;background:var(--surface)}
+.stepper button.on{background:var(--accent);color:#fff}
+:root[data-theme="dark"] .stepper button.on,:root:not([data-theme="light"]) .stepper button.on{color:#08211D}
+.sublist{display:flex;flex-direction:column;gap:2px}
+.subrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;text-align:left;font-family:Archivo,sans-serif;font-size:.9rem}
+.subrow:hover{border-color:var(--accent)}
+hr.rule{border:0;border-top:1px solid var(--line-2);margin:0}
+@media (max-width:640px){
+  .bignum{font-size:2.6rem}
+  .barrow{grid-template-columns:1fr 80px 56px}
+  #rail .wrap{gap:8px}
+  .brand{font-size:.78rem}
+}
+@media print{
+  #rail,#refbtn,.noprint{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;break-inside:avoid}
+  details{break-inside:avoid}
+  details>summary::before{content:""}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body style="margin:0">
+<div id="rail"><div class="wrap">
+  <div class="brand">Supplier Desk <span>Starter Test</span></div>
+  <div class="pips" id="pips"></div>
+  <div id="clock">75:00</div>
+</div></div>
+
+<div id="recoverbar" hidden><div class="wrap"><span class="rb-dot"></span><span id="rb-text">This computer holds a finished attempt that never reached the interviewer.</span><button id="rb-btn" class="tiny">Recover it</button></div></div>
+
+<main id="app"></main>
+
+<button id="refbtn" class="ui" hidden>Reference</button>
+<div id="drawer"><div class="scrim" data-close></div><div class="sheet" id="sheet"></div></div>
+
+<script>
+const MINUTES = 40;
+const REVIEW_CODE = "SOA2026";
+const RETURN_EMAIL = "taha.h@sindibad.iq";
+/* Automatic capture. Fill these two in and every finished test posts itself
+   into the interviewer's Google Sheet. Left blank, the page falls back to the
+   email / copy buttons on the last screen and nothing else changes. */
+const FORM_POST  = "";   /* https://docs.google.com/forms/d/e/<form id>/formResponse */
+const FORM_NAME  = "";   /* entry.<id> for the "Name" question   */
+const FORM_CODE  = "";   /* entry.<id> for the "Answers" question */
+
+/* ============================ helpers ============================ */
+const useCap=n=>{try{return (window.claude&&window.claude.use)?window.claude.use(n):Promise.resolve(null);}catch(e){return Promise.resolve(null);}};
+const $ = (s,r=document)=>r.querySelector(s);
+const el=(t,a={},...k)=>{const n=document.createElement(t);for(const[p,v]of Object.entries(a)){if(p==="class")n.className=v;else if(p==="html")n.innerHTML=v;else if(p.startsWith("on"))n.addEventListener(p.slice(2),v);else if(v!==null&&v!==false&&v!==undefined)n.setAttribute(p,v===true?"":v);}for(const c of k.flat()){if(c===null||c===undefined||c===false)continue;n.append(c.nodeType?c:document.createTextNode(c));}return n;};
+const fmt=(v,d=2)=>v===null||v===undefined||v===""?"":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmt0=v=>fmt(v,0);
+const money=v=>!v?"":fmt(v);
+const store={
+  get(k,f){try{const v=localStorage.getItem("sda:"+k);return v?JSON.parse(v):f;}catch(e){return f;}},
+  set(k,v){try{localStorage.setItem("sda:"+k,JSON.stringify(v));}catch(e){}},
+  del(k){try{localStorage.removeItem("sda:"+k);}catch(e){}}
+};
+const norm=s=>(s||"").toLowerCase().replace(/[’']/g,"'").replace(/\s+/g," ").trim();
+
+/* ============================ reference tables ============================ */
+function tbl(cols,rows,opts){
+  opts=opts||{};
+  const w=el("div",{class:"tablewrap"+(opts.tall?" tall":"")});
+  const t=el("table");
+  t.append(el("thead",{},el("tr",{},cols.map(c=>el("th",{class:c.n?"n":""},c.h)))));
+  const b=el("tbody");
+  rows.forEach((r,i)=>{
+    const tr=el("tr",{});
+    cols.forEach(c=>{
+      const v=c.get(r,i);
+      const cls=[c.n?"n":"",c.ar?"ar":"",c.neg&&typeof v==="number"&&v<0?"neg":""].filter(Boolean).join(" ");
+      tr.append(el("td",{class:cls},v===null||v===undefined?"":String(v)));
+    });
+    b.append(tr);
+  });
+  t.append(b);w.append(t);return w;
+}
+const FX=1320;
+
+const CONVENTION=[
+  "We keep one page for each supplier we buy from.",
+  "<b>Charge</b> = money the supplier charges us, for tickets or fees.",
+  "<b>Paid</b> = money we send the supplier.",
+  "<b>Balance</b> after a line = the balance before it <b>minus the charge, plus what we paid</b>.",
+  "A <b>negative</b> balance means <b>we owe the supplier</b>. A positive one means our money is sitting with them.",
+  "A <b>refund</b> is money coming back to us, so it counts as a <b>negative charge</b>.",
+  "A line where nothing moved at all, zero charged and zero paid, is <b>not written down</b>."
+];
+const ARABIC_GLOSS=[["\u0645\u062F\u064A\u0646","A charge to us"],["\u062F\u0627\u0626\u0646","Money we paid them"],
+  ["\u0642\u0637\u0639 \u062A\u0630\u0643\u0631\u0629","A ticket was issued"],["\u0627\u0633\u062A\u0631\u062C\u0627\u0639","A refund"]];
+
+const MINI=[
+  ["05/07/2026","Tickets invoice","640,000","",-1140000],
+  ["07/07/2026","Payment we sent","","2,000,000",860000],
+  ["09/07/2026","Tickets invoice","385,000","",475000],
+  ["12/07/2026","Tickets invoice","1,150,000","",-675000],
+  ["14/07/2026","Payment we sent","","1,000,000",325000],
+  ["15/07/2026","Date change fee","60,000","",265000]
+];
+const MINI_OPEN=-500000;
+const TWIST_OPTS=["Charge","Paid","Refund (negative charge)","Not written down"];
+const TWIST=[
+  ["A ticket is issued. The supplier charges us 385,000.","Charge"],
+  ["We send the supplier a bank transfer of 3,000,000.","Paid"],
+  ["The passenger cancels. The supplier gives back the full 385,000.","Refund (negative charge)"],
+  ["A booking is cancelled the same hour. Nothing is charged at all: 0.","Not written down"],
+  ["The supplier charges 60,000 to change a travel date.","Charge"],
+  ["A passenger cancels a 490,000 ticket. The supplier keeps 75,000 and returns 415,000.","Refund (negative charge)"]
+];
+const BADROWS=[
+  ["1","05/07/2026","A1001","Tickets","300,000","","-500,000"],
+  ["2","06/07/2026","A1002","Tickets","150,000","","-650,000"],
+  ["3","06/07/2026","A1002","Tickets","150,000","","-800,000"],
+  ["4","31/06/2026","A1003","Tickets","200,000","","-1,000,000"],
+  ["5","09/07/2026","A1004","Refund of a cancelled ticket","120,000","","-1,120,000"],
+  ["6","10/07/2026","A1005","Payment we sent","","2,000,000","900,000"],
+  ["7","11/07/2026","","Tickets","250,000","","650,000"]
+];
+const OURLIST=[["A-1001","300,000"],["A-1002","150,000"],["A-1003","200,000"],["A-1004","450,000"],
+               ["A-1005","640,000"],["A-1006","120,000"],["A-1008","385,000"],["A-1009","90,000"]];
+const THEIRLIST=[["A-1001","300,000"],["A-1003","200,000"],["A-1004","540,000"],["A-1005","640,000"],
+                 ["A-1006","120,000"],["A-1007","275,000"],["A-1008","385,000"],["A-1009","90,000"]];
+const REFS=["A-1001","A-1002","A-1003","A-1004","A-1005","A-1006","A-1007","A-1008","A-1009"];
+const AR_OPTS=["Charge","Paid","Refund"];
+const ARROWS=[["\u0642\u0637\u0639 \u062A\u0630\u0643\u0631\u0629","640,000","Charge"],
+              ["\u0627\u0633\u062A\u0631\u062C\u0627\u0639","385,000","Refund"],
+              ["\u062F\u0627\u0626\u0646","2,000,000","Paid"],
+              ["\u0645\u062F\u064A\u0646","60,000","Charge"]];
+
+const MINITABLE=()=>el("div",{class:"stack g8"},
+  tbl([{h:"Date",get:r=>r[0]},{h:"What happened",get:r=>r[1]},{h:"Charge",n:1,get:r=>r[2]},{h:"Paid",n:1,get:r=>r[3]}],MINI),
+  el("p",{class:"cap"},"Opening balance before line 1: \u2212500,000, meaning we owe 500,000."));
+const BADTABLE=()=>el("div",{class:"stack g8"},
+  tbl([{h:"Row",get:r=>r[0]},{h:"Date",get:r=>r[1]},{h:"Ref",get:r=>r[2]},{h:"What happened",get:r=>r[3]},
+       {h:"Charge",n:1,get:r=>r[4]},{h:"Paid",n:1,get:r=>r[5]},{h:"Balance",n:1,get:r=>r[6]}],BADROWS),
+  el("p",{class:"cap"},"Opening balance before row 1: \u2212200,000."));
+const LISTTABLE=()=>el("div",{class:"row",style:"align-items:flex-start;gap:16px"},
+  el("div",{class:"stack g8",style:"flex:1;min-width:230px"},el("div",{class:"eyebrow"},"Our list"),
+    tbl([{h:"Ref",get:r=>r[0]},{h:"Amount",n:1,get:r=>r[1]}],OURLIST)),
+  el("div",{class:"stack g8",style:"flex:1;min-width:230px"},el("div",{class:"eyebrow"},"The supplier's list"),
+    tbl([{h:"Ref",get:r=>r[0]},{h:"Amount",n:1,get:r=>r[1]}],THEIRLIST)));
+const ARTABLE=()=>el("div",{class:"stack g8"},
+  tbl([{h:"Term",ar:1,get:r=>r[0]},{h:"What it means",get:r=>r[1]}],ARABIC_GLOSS),
+  el("p",{class:"cap"},"You are not expected to know these words. Use the table."));
+
+/* ============================ the paper ============================ */
+const SECTIONS=[
+ {id:"A",name:"Working with numbers",pts:12,
+  intro:"Ordinary arithmetic, the kind this desk uses every day. Take your time and check yourself. A calculator is fine.",
+  items:[
+   {id:"A1",pts:2,type:"num",q:"Eight tickets cost <b>385,000</b> each. What is the total?",a:3080000,tol:0,unit:"IQD",
+    why:"8 \u00D7 385,000 = 3,080,000."},
+   {id:"A2",pts:2,type:"num",q:"Convert <b>IQD 2,640,000</b> into dollars. The rate is <b>1,320</b> to one dollar.",a:2000,tol:0,unit:"USD",
+    why:"2,640,000 \u00F7 1,320 = 2,000."},
+   {id:"A3",pts:2,type:"num",q:"Add these five payments: <b>120,000 \u00B7 85,500 \u00B7 240,000 \u00B7 63,750 \u00B7 190,000</b>",a:699250,tol:0,unit:"IQD",
+    why:"699,250."},
+   {id:"A4",pts:2,type:"num",q:"A supplier pays us <b>3%</b> commission on sales of <b>1,200,000</b>. How much is that?",a:36000,tol:0,unit:"IQD",
+    why:"1,200,000 \u00D7 0.03 = 36,000."},
+   {id:"A5",pts:2,type:"mcq",q:"An email lists a day's payments and says <b>Total: 45,300</b>. You add the lines yourself and get <b>45,800</b>. What do you do first?",
+    opts:["Use 45,300, because that is what the email says","Use 45,800, because you worked it out yourself",
+          "Add the lines again, then look for a line that is missing or typed wrong","Send it on and let someone else notice"],a:2,
+    why:"Check your own work, then find the cause. Choosing one of the two numbers before you know why they differ is the mistake this job cannot afford."},
+   {id:"A6",pts:2,type:"mcq",q:"Which of these is <b>not</b> the same amount as the other three?",
+    opts:["1,250,000","1.25 million","1,205,000","1,250,000.00"],a:2,
+    why:"1,205,000. Reading digits carefully is most of the work."}
+  ]},
+
+ {id:"B",name:"Learn our rule",pts:20,
+  intro:"Here is how we keep a supplier's page. Nobody expects you to know this already. Read it once and use it. It stays available under the Reference button, bottom right.",
+  rule:true,
+  items:[
+   {id:"B1",pts:2,type:"num",q:"The balance is <b>\u2212500,000</b>. The supplier charges us <b>200,000</b>. What is the balance now?",a:-700000,tol:0,unit:"IQD",
+    why:"\u2212500,000 \u2212 200,000 = \u2212700,000. We owe more."},
+   {id:"B2",pts:2,type:"num",q:"From that <b>\u2212700,000</b>, we send the supplier <b>1,000,000</b>. What is the balance now?",a:300000,tol:0,unit:"IQD",
+    why:"\u2212700,000 + 1,000,000 = 300,000. Now our money is with them."},
+   {id:"B3",pts:12,type:"grid",build:"mini",a:MINI.map(r=>r[4]),
+    q:"Fill in the balance after each line. The opening balance is <b>\u2212500,000</b>. Two points a line.",
+    why:"Each line takes the balance above it, subtracts the charge and adds what we paid."},
+   {id:"B4",pts:2,type:"mcq",q:"A supplier's page shows a balance of <b>\u22121,400,000</b>. This means:",
+    opts:["The supplier owes us 1,400,000","We owe the supplier 1,400,000","The page has an error","We have paid 1,400,000 too much"],a:1,
+    why:"Negative means we owe them."},
+   {id:"B5",pts:2,type:"mcq",q:"Another supplier's page shows <b>+900,000</b>. This means:",
+    opts:["We owe them 900,000","Our money is sitting with them and we can take tickets against it",
+          "They have overcharged us","Nothing, the page is empty"],a:1,
+    why:"Positive means we paid ahead and they are holding our money."}
+  ]},
+
+ {id:"C",name:"Two more rules",pts:14,
+  intro:"Two additions to the same rule. A refund is money coming back to us, so it counts as a negative charge. And a line where nothing moved at all is not written down.",
+  rule:true,
+  items:[
+   {id:"C1",pts:9,type:"grid",build:"twist",a:TWIST.map(r=>r[1]),
+    q:"How does each of these go on the supplier's page? A point and a half each.",
+    why:"A fee the supplier charges is still a Charge. Both cancellations are refunds; the penalty changes the amount, not the kind. The zero line is not written down."},
+   {id:"C2",pts:3,type:"num",q:"Put those six lines through a page that opens at <b>\u22121,000,000</b>. What is the balance at the end?",a:2355000,tol:0,unit:"IQD",
+    why:"\u22121,000,000 \u2212 385,000 + 3,000,000 + 385,000 \u2212 60,000 + 415,000 = 2,355,000."},
+   {id:"C3",pts:2,type:"mcq",q:"Why do we leave out the line where nothing moved?",
+    opts:["To keep the page short","Because nothing moved, and a line for it could later be mistaken for a real transaction",
+          "Because the supplier does not allow it","Because it would break Excel"],a:1,
+    why:"An empty line is not free. Someone reading the page later has to work out whether it mattered."}
+  ]},
+
+ {id:"D",name:"Spot the mistake",pts:15,
+  intro:"Seven rows from a supplier's page. Every balance follows on from the one above it, so at a glance it all looks tidy. It is not.",
+  table:"bad",
+  items:[
+   {id:"D1",pts:15,type:"multi",
+    q:"Which of these problems are really there? <b>Three points for each right answer, three lost for each wrong one</b>, so tick only what you can actually see.",
+    opts:["Rows 2 and 3 are the same line entered twice","Row 4's date does not exist",
+          "Row 5 is a refund but it is written as a charge, so it increases what we owe instead of reducing it",
+          "Row 6's balance does not follow the rule","Row 7 has no reference number",
+          "The rows are not in date order","The amounts do not say which currency they are","A balance is never allowed to be negative"],
+    a:[0,1,2,3,4],
+    why:"June has 30 days. Row 6 should be \u22121,120,000 + 2,000,000 = 880,000, not 900,000. The rows are in date order apart from the impossible one, currency is set once at the top of a page, and a negative balance is normal: it just means we owe them."}
+  ]},
+
+ {id:"E",name:"Match two lists",pts:14,
+  intro:"We think we bought eight things from a supplier. The supplier thinks they sold us eight things. The two lists do not agree. Comparing lists like this is a large part of the job.",
+  table:"lists",
+  items:[
+   {id:"E1",pts:4,type:"select",q:"Which reference is on <b>both</b> lists but with a <b>different amount</b>?",
+    opts:REFS,a:REFS.indexOf("A-1004"),
+    why:"A-1004: ours says 450,000, theirs says 540,000. Two digits swapped, the commonest keying mistake there is."},
+   {id:"E2",pts:4,type:"select",q:"Which reference is on the <b>supplier's</b> list but missing from <b>ours</b>?",
+    opts:REFS,a:REFS.indexOf("A-1007"),
+    why:"A-1007, 275,000. They have billed us for something we never wrote down."},
+   {id:"E3",pts:3,type:"select",q:"Which reference is on <b>our</b> list but missing from <b>theirs</b>?",
+    opts:REFS,a:REFS.indexOf("A-1002"),
+    why:"A-1002, 150,000."},
+   {id:"E4",pts:3,type:"mcq",q:"What do you do about the one that is only on the supplier's list?",
+    opts:["Delete it from their list","Add it to ours straight away so the two match",
+          "Find out what it was, and add it once you know it is real","Ignore it, our list is ours"],a:2,
+    why:"Making the lists match is not the goal. Being right is. Never write a number into our books just to stop a difference showing."}
+  ]},
+
+ {id:"F",name:"How you work",pts:15,
+  intro:"Five short ones about how you handle yourself. Two or three sentences is plenty. There is no trick here.",
+  written:true,
+  items:[
+   {id:"F1",pts:3,type:"text",q:"You are given a task you have never done before. The person who knows how to do it is away for two days. What do you do?",
+    model:"Look at how it was done last time and follow that, write down the parts I do not understand, and do the parts I am sure about. Ask someone else who might know. Send the person who is away a short message so they can answer when they are back. I would not guess at the unclear parts and hand them in as finished.",
+    keys:[{any:["last time","previous","example","how it was done","look at","earlier","before"],pts:0.8},
+          {any:["write down","note","list","questions","mark"],pts:0.7},
+          {any:["ask","someone else","colleague","message","check with"],pts:0.8},
+          {any:["not guess","without guessing","flag","unsure","tell them","say which"],pts:0.7}]},
+   {id:"F2",pts:3,type:"text",q:"You notice that a number you sent out yesterday was wrong. Nobody else has spotted it. What do you do?",
+    model:"Say so straight away, to the person I sent it to and to my manager. Send the corrected figure and explain what was wrong. Then work out how it happened so it does not repeat.",
+    keys:[{any:["straight away","immediately","at once","same day","as soon as","right away"],pts:0.8},
+          {any:["tell","say","inform","let them know","report","admit"],pts:1.0},
+          {any:["correct","fix","send the right","new figure","updated","amend"],pts:0.7},
+          {any:["how it happened","why","cause","so it does not","prevent","again"],pts:0.5}]},
+   {id:"F3",pts:3,type:"text",q:"Someone from outside the company asks you, in a friendly way, how much money we keep with one of our suppliers. What do you say?",
+    model:"I would not tell them. That is company information. I would politely say I cannot share it, and offer to pass the question to my manager if they need something.",
+    keys:[{any:["not tell","cannot share","can't share","would not","decline","refuse","confidential","private","not allowed","don't share","do not share","wouldn't"],pts:1.8},
+          {any:["manager","taha","pass","refer","my boss","someone above","ask my"],pts:1.2}]},
+   {id:"F4",pts:3,type:"mcq",q:"You are entering a line and cannot tell whether the amount is a charge or a payment. What is the best thing to do?",
+    opts:["Put it in whichever column keeps the balance looking sensible","Leave the line out until someone tells you",
+          "Enter your best guess and move on","Set it aside, mark it clearly, ask, and get on with the rest meanwhile"],a:3,
+    why:"Do not stop, and do not guess in silence. Set it aside visibly, keep working, and ask."},
+   {id:"F5",pts:3,type:"mcq",q:"You have just typed up 60 rows from a supplier's statement. What do you do before sending it on?",
+    opts:["Send it, you were careful while typing","Check that your total matches the total printed on the statement",
+          "Read all 60 rows again from the beginning","Ask someone else to type it again separately"],a:1,
+    why:"Comparing your total with the supplier's printed one catches a missed or doubled row in seconds. Re-reading everything is slower and catches less."}
+  ]},
+
+ {id:"G",name:"Basic Excel",pts:10,
+  intro:"Just the basics. If you have used Excel a little you should manage these. We will teach the rest.",
+  items:[
+   {id:"G1",pts:2,type:"mcq",q:"What does <span class='mono'>=SUM(B2:B20)</span> do?",
+    opts:["Counts how many cells have something in them","Adds up the numbers from B2 down to B20",
+          "Finds the largest number","Sorts the column"],a:1,why:"It adds them up."},
+   {id:"G2",pts:2,type:"mcq",q:"You type <span class='mono'>=A2*B2</span> in row 2 and drag it down to row 3. What is in row 3?",
+    opts:["=A2*B2","=A3*B3","=A2*B3","An error"],a:1,why:"The references move down with the formula."},
+   {id:"G3",pts:2,type:"mcq",q:"Charge is column D, Paid is column E, Balance is column F, and row 6 is already filled in. Which formula gives the balance in <b>F7</b>?",
+    opts:["=F6-D7+E7","=F6+D7-E7","=D7-E7","=F7-D7+E7"],a:0,
+    why:"The balance before, minus the charge, plus what we paid."},
+   {id:"G4",pts:2,type:"mcq",q:"A cell shows <span class='mono'>#####</span> instead of a number. What is wrong?",
+    opts:["The formula is broken","The column is too narrow to show the number","The file is damaged","The number is negative"],a:1,
+    why:"Widen the column."},
+   {id:"G5",pts:2,type:"mcq",q:"You want to find one supplier's rows in a list of 3,000. What is quickest?",
+    opts:["Scroll until you see them","Put a filter on the supplier column","Sort the whole sheet by date","Copy the sheet and delete the other rows"],a:1,
+    why:"A filter."}
+  ]},
+
+ {id:"X",name:"Reading a little Arabic",pts:5,bonus:true,
+  intro:"Bonus, and not required. Some supplier statements reach us in Arabic. You are given what the words mean, so this is about using a table you have been handed.",
+  table:"arabic",
+  items:[
+   {id:"X1",pts:5,type:"grid",build:"arabic",a:ARROWS.map(r=>r[2]),
+    q:"Using the table above, how does each line go on the supplier's page?",
+    why:"A charge to us and a ticket issued are both Charges, money we paid them is Paid, and a refund is a Refund."}
+  ]}
+];
+const TOTAL_PTS=SECTIONS.filter(s=>!s.bonus).reduce((a,s)=>a+s.pts,0);
+const BONUS_PTS=SECTIONS.filter(s=>s.bonus).reduce((a,s)=>a+s.pts,0);
+
+/* ============================ grading ============================ */
+function gradeItem(it,v){
+  const max=it.pts;
+  if(v===undefined||v===null||v===""||(Array.isArray(v)&&!v.length))return{e:0,max,state:"no",given:"— not answered —"};
+  switch(it.type){
+    case"mcq":case"select":{
+      const ok=v===it.a;const list=it.type==="mcq"?it.opts:it.opts;
+      return{e:ok?max:0,max,state:ok?"ok":"no",given:list[v],want:list[it.a]};
+    }
+    case"num":{
+      const n=Number(String(v).replace(/[, ]/g,""));
+      const ok=isFinite(n)&&Math.abs(n-it.a)<=(it.tol??0);
+      return{e:ok?max:0,max,state:ok?"ok":"no",given:isFinite(n)?fmt(n,n%1?1:0):String(v),want:fmt(it.a,it.a%1?1:0)};
+    }
+    case"formula":{
+      const c=String(v).toUpperCase().replace(/[\s$]/g,"");
+      const ok=c==="=I6-G7+H7"||c==="I6-G7+H7"||c==="=+I6-G7+H7";
+      return{e:ok?max:0,max,state:ok?"ok":"no",given:String(v),want:it.a};
+    }
+    case"multi":{
+      const sel=v||[],good=sel.filter(i=>it.a.includes(i)).length,bad=sel.length-good;
+      const e=Math.max(0,Math.min(max,(good-bad)*(max/it.a.length)));
+      return{e:Math.round(e*100)/100,max,state:e>=max?"ok":e>0?"part":"no",
+        given:sel.length?sel.map(i=>it.opts[i]).join(" · "):"— none —",want:it.a.map(i=>it.opts[i]).join(" · ")};
+    }
+    case"match":{
+      const per=max/it.a.length;let e=0;const rows=[];
+      it.a.forEach((ans,i)=>{const g=(v||[])[i];const ok=g===ans;if(ok)e+=per;rows.push({l:it.left[i],g:g||"—",a:ans,ok});});
+      return{e:Math.round(e*100)/100,max,state:e>=max?"ok":e>0?"part":"no",rows};
+    }
+    case"grid":{
+      const per=max/it.a.length;let e=0;const rows=[];
+      it.a.forEach((ans,i)=>{
+        let g=(v||[])[i],ok;
+        if(typeof ans==="number"){const n=Number(String(g??"").replace(/[, ]/g,""));ok=isFinite(n)&&Math.abs(n-ans)<=0.06;g=isFinite(n)?String(g):(g||"—");}
+        else ok=g===ans;
+        if(ok)e+=per;rows.push({l:gridLabel(it,i),g:g||"—",a:typeof ans==="number"?fmt(ans,1):ans,ok});
+      });
+      return{e:Math.round(e*100)/100,max,state:e>=max?"ok":e>0?"part":"no",rows};
+    }
+    case"text":{
+      const t=norm(v);let e=0;
+      it.keys.forEach(k=>{if(k.any.some(w=>t.includes(norm(w))))e+=k.pts;});
+      if(t.split(" ").length<4)e=Math.min(e,max*0.25);
+      e=Math.round(Math.min(e,max)*10)/10;
+      return{e,max,state:e>=max?"ok":e>0?"part":"no",given:v,want:it.model,review:true};
+    }
+  }
+  return{e:0,max,state:"no",given:String(v)};
+}
+function gridLabel(it,i){
+  if(it.build==="mini")return "Line "+(i+1)+" \u00B7 "+MINI[i][1];
+  if(it.build==="twist")return TWIST[i][0].slice(0,44)+(TWIST[i][0].length>44?"\u2026":"");
+  if(it.build==="arabic")return ARROWS[i][0]+" "+ARROWS[i][1];
+  return "Row "+(i+1);
+}
+
+function gradeAll(answers){
+  const sec=[],per={};let auto=0,autoMax=0,bonus=0,bonusMax=0;
+  SECTIONS.forEach(s=>{
+    let e=0;
+    s.items.forEach(it=>{const g=gradeItem(it,answers[it.id]);per[it.id]=g;e+=g.e;});
+    e=Math.round(e*100)/100;
+    sec.push({id:s.id,name:s.name,earned:e,max:s.pts,bonus:!!s.bonus});
+    if(s.bonus){bonus+=e;bonusMax+=s.pts;}else{auto+=e;autoMax+=s.pts;}
+  });
+  return{sec,per,auto:Math.round(auto*100)/100,autoMax,bonus:Math.round(bonus*100)/100,bonusMax};
+}
+
+/* ============================ state ============================ */
+let A=store.get("answers",{});
+let NAME=store.get("name","");
+let STARTED=store.get("started",null);
+let step=store.get("step",-1);          // -1 = start screen, n = section index, 999 = results
+let RESULT=store.get("result",null);    // frozen at submit
+let timer=null, DB=null, SUB_ID=store.get("subid",null);
+let REVEAL=false, SAVE_ERR=null;
+
+useCap("db").then(d=>{DB=d;}).catch(()=>{});
+
+function saveA(){store.set("answers",A);}
+function setStep(n){step=n;store.set("step",n);window.scrollTo(0,0);render();}
+
+/* ============================ timer ============================ */
+function remaining(){if(!STARTED)return MINUTES*60;return Math.max(0,MINUTES*60-Math.floor((Date.now()-STARTED)/1000));}
+function tick(){
+  const r=remaining(),c=$("#clock");
+  if(!c)return;
+  c.textContent=String(Math.floor(r/60)).padStart(2,"0")+":"+String(r%60).padStart(2,"0");
+  c.className=r<=300?"crit":r<=900?"warn":"";
+  if(r<=0&&step!==999&&STARTED){submit(true);}
+}
+setInterval(tick,1000);
+
+/* ============================ render ============================ */
+function render(){
+  const app=$("#app");app.innerHTML="";
+  $("#refbtn").hidden=!(step>=0&&step<SECTIONS.length);
+  renderPips();tick();renderRecoverBar();
+  if(step===-1)return app.append(startScreen());
+  if(step===999)return app.append(resultsScreen());
+  if(step===1000)return app.append(reviewerScreen());
+  if(step===1001)return app.append(recoverScreen());
+  app.append(sectionScreen(SECTIONS[step]));
+}
+function renderPips(){
+  const p=$("#pips");p.innerHTML="";
+  if(step<0||step===1000){p.innerHTML="";return;}
+  SECTIONS.forEach((s,i)=>p.append(el("div",{class:"pip"+(step>i||step===999?" done":i===step?" now":""),title:s.name})));
+}
+
+/* ---------- start ---------- */
+function startScreen(){
+  const box=el("div",{class:"wrap stack g24",style:"padding-top:44px;padding-bottom:64px"});
+  box.append(
+    el("div",{class:"stack g12"},
+      el("div",{class:"eyebrow"},"Sindibad Travels · Accounting assistant"),
+      el("h1",{},"Supplier accounts and payments — practical assessment"),
+      el("p",{class:"prose",style:"font-size:1.05rem;color:var(--ink-2)"},
+        "You are not expected to know this work already. Every rule you need is written on the page, just above the questions that use it. What we are looking at is how fast you pick a rule up, whether you apply it without slipping, and whether you notice when something looks wrong.")
+    )
+  );
+  const facts=el("div",{class:"card pad stack g16"},
+    el("div",{class:"row",style:"gap:28px"},
+      fact(MINUTES+" minutes","Timed from when you press Start"),
+      fact("No experience needed","Every rule is given to you"),
+      fact(SECTIONS.length+" short sections","You can go back and change answers")
+    ),
+    el("hr",{class:"rule"}),
+    el("div",{class:"stack g8"},
+      el("h3",{},"Before you start"),
+      el("ul",{class:"stack g8 small",style:"margin:0;padding-left:18px;color:var(--ink-2)"},
+        el("li",{},"Everything in this test is invented: the amounts, the names, the reference numbers and the suppliers."),
+        el("li",{},"Nothing here needs travel or accounting experience. Where a rule matters, it is written out for you first, and the Reference button keeps it one click away."),
+        el("li",{},"If you are unsure, answer anyway and say what you would check. We would far rather see that than a blank."),
+        el("li",{},"A calculator is fine. Your answers are kept in this browser, so a refresh will not lose them."))
+    )
+  );
+  box.append(facts);
+  const nameIn=el("input",{type:"text",placeholder:"Your full name",value:NAME,style:"flex:1;min-width:220px;font-size:1rem;padding:11px 13px"});
+  const go=el("button",{class:"primary",style:"padding:11px 24px;font-size:.95rem"},"Start the assessment");
+  const err=el("p",{class:"small",style:"color:var(--neg)",hidden:true},"Please type your name first.");
+  go.addEventListener("click",()=>{
+    const n=nameIn.value.trim();
+    if(!n){err.hidden=false;nameIn.focus();return;}
+    NAME=n;store.set("name",n);
+    if(!STARTED){STARTED=Date.now();store.set("started",STARTED);}
+    setStep(0);
+  });
+  nameIn.addEventListener("keydown",e=>{if(e.key==="Enter")go.click();});
+  box.append(el("div",{class:"card pad stack g12"},
+    el("h3",{},"Your name, then start the clock"),
+    el("div",{class:"row"},nameIn,go),err));
+  box.append(el("div",{class:"row noprint",style:"justify-content:center;padding-top:8px"},
+    el("button",{class:"ghost tiny",onclick:()=>openReviewer()},"Interviewer sign-in")));
+  return box;
+}
+function fact(big,small){
+  return el("div",{class:"stack",style:"gap:2px"},
+    el("div",{class:"ui",style:"font-size:1.15rem;font-weight:700"},big),
+    el("div",{class:"tiny muted"},small));
+}
+
+/* ---------- a section ---------- */
+function sectionScreen(s){
+  const box=el("div",{class:"wrap stack g24",style:"padding-top:30px;padding-bottom:80px"});
+  box.append(el("div",{class:"stack g8"},
+    el("div",{class:"eyebrow"},"Section "+(step+1)+" of "+SECTIONS.length+(s.bonus?" · bonus":"")+" · "+s.pts+" points"),
+    el("h2",{},s.name),
+    el("p",{class:"prose",style:"color:var(--ink-2)",html:s.intro})));
+  if(s.rule)box.append(el("div",{class:"note stack g8"},
+    el("div",{class:"eyebrow"},"The rule"),
+    el("ul",{class:"stack g8 small",style:"margin:0;padding-left:18px"},CONVENTION.map(c=>el("li",{html:c})))));
+  if(s.id==="B")box.append(MINITABLE());
+  if(s.table)box.append(tableFor(s.table));
+  const card=el("div",{class:"card",style:"padding:4px 22px"});
+  s.items.forEach(it=>card.append(questionNode(it)));
+  box.append(card);
+  const back=el("button",{onclick:()=>setStep(step-1)},"Back");
+  if(step===0)back.disabled=true;
+  const last=step===SECTIONS.length-1;
+  const next=el("button",{class:"primary",onclick:()=>last?confirmSubmit():setStep(step+1)},last?"Finish and see my score":"Next section");
+  box.append(el("div",{class:"spread"},back,el("div",{class:"tiny muted"},answeredCount(s)+" of "+s.items.length+" answered"),next));
+  return box;
+}
+function answeredCount(s){return s.items.filter(it=>{const v=A[it.id];return !(v===undefined||v===null||v===""||(Array.isArray(v)&&v.filter(x=>x!==undefined&&x!=="").length===0));}).length;}
+function tableFor(k){
+  if(k==="bad")return BADTABLE();
+  if(k==="lists")return LISTTABLE();
+  if(k==="arabic")return ARTABLE();
+  return el("div");
+}
+
+/* ---------- one question ---------- */
+function questionNode(it){
+  const n=el("div",{class:"q"});
+  n.append(el("div",{class:"q-head"},
+    el("div",{class:"q-id"},it.id),
+    el("div",{class:"prose",html:it.q}),
+    el("div",{class:"q-pts"},it.pts+(it.pts===1?" pt":" pts"))));
+  const body=el("div",{class:"q-body"});
+  const set=v=>{A[it.id]=v;saveA();};
+  switch(it.type){
+    case"mcq":case"multi":{
+      const multi=it.type==="multi";
+      const wrap=el("div",{class:"opts"});
+      it.opts.forEach((o,i)=>{
+        const cur=A[it.id];
+        const on=multi?(cur||[]).includes(i):cur===i;
+        const inp=el("input",{type:multi?"checkbox":"radio",name:it.id,checked:on});
+        const lab=el("label",{class:"opt"+(on?" sel":"")},inp,el("span",{html:o}));
+        inp.addEventListener("change",()=>{
+          if(multi){const c=new Set(A[it.id]||[]);inp.checked?c.add(i):c.delete(i);set([...c].sort((x,y)=>x-y));}
+          else set(i);
+          [...wrap.children].forEach((c,j)=>c.classList.toggle("sel",multi?(A[it.id]||[]).includes(j):A[it.id]===j));
+        });
+        wrap.append(lab);
+      });
+      body.append(wrap);
+      if(multi)body.append(el("p",{class:"tiny muted",style:"margin-top:6px"},"Choose all that apply."));
+      break;
+    }
+    case"select":{
+      const sel=el("select",{},el("option",{value:""},"Choose…"),it.opts.map((o,i)=>el("option",{value:i,selected:A[it.id]===i},o)));
+      sel.addEventListener("change",()=>set(sel.value===""?undefined:Number(sel.value)));
+      body.append(sel);break;
+    }
+    case"num":{
+      const inp=el("input",{type:"text",class:"num",inputmode:"decimal",placeholder:"0",value:A[it.id]??"",style:"width:170px"});
+      inp.addEventListener("input",()=>set(inp.value));
+      body.append(el("div",{class:"numwrap"},inp,el("span",{class:"unit"},it.unit||"")));break;
+    }
+    case"formula":{
+      const inp=el("input",{type:"text",class:"mono",placeholder:"=…",value:A[it.id]??"",style:"width:240px"});
+      inp.addEventListener("input",()=>set(inp.value));
+      body.append(inp);break;
+    }
+    case"text":{
+      const ta=el("textarea",{placeholder:"Two or three sentences."},A[it.id]??"");
+      ta.value=A[it.id]??"";
+      ta.addEventListener("input",()=>set(ta.value));
+      body.append(ta);break;
+    }
+    case"match":{
+      const cur=A[it.id]||[];
+      const g=el("div",{style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px"});
+      it.left.forEach((l,i)=>{
+        const sel=el("select",{style:"flex:1;min-width:0"},el("option",{value:""},"Choose…"),
+          it.right.map(r=>el("option",{value:r,selected:cur[i]===r},r)));
+        sel.addEventListener("change",()=>{const c=(A[it.id]||[]).slice();c[i]=sel.value||undefined;set(c);});
+        g.append(el("div",{class:"row",style:"gap:8px;flex-wrap:nowrap"},
+          el("div",{class:it.rtl?"ar":"mono",style:"width:92px;flex:none;font-size:"+(it.rtl?"1.05rem":".9rem")+";"+(it.rtl?"direction:rtl;text-align:right":"")},l),sel));
+      });
+      body.append(g);break;
+    }
+    case"grid":body.append(gridNode(it,set));break;
+  }
+  n.append(body);return n;
+}
+function gridNode(it,set){
+  const cur=A[it.id]||[];
+  const wrap=el("div",{class:"gridq"});const t=el("table");
+  const mk=(i,opts)=>{
+    const sel=el("select",{},el("option",{value:""},"Choose\u2026"),opts.map(o=>el("option",{value:o,selected:cur[i]===o},o)));
+    sel.addEventListener("change",()=>{const c=(A[it.id]||[]).slice();c[i]=sel.value||undefined;set(c);});
+    return sel;
+  };
+  const numIn=i=>{
+    const inp=el("input",{type:"text",class:"num",inputmode:"numeric",placeholder:"0",value:cur[i]??"",style:"width:135px"});
+    inp.addEventListener("input",()=>{const c=(A[it.id]||[]).slice();c[i]=inp.value;set(c);});
+    return inp;
+  };
+  if(it.build==="mini"){
+    t.append(el("thead",{},el("tr",{},["Line","Date","What happened","Charge","Paid","Balance after"].map((h,i)=>el("th",{class:i>2?"n":""},h)))));
+    const b=el("tbody");
+    b.append(el("tr",{},el("td",{},""),el("td",{},""),el("td",{style:"color:var(--muted)"},"Opening balance"),
+      el("td",{},""),el("td",{},""),el("td",{class:"n mono",style:"color:var(--muted)"},fmt(MINI_OPEN,0))));
+    MINI.forEach((r,i)=>b.append(el("tr",{},
+      el("td",{},String(i+1)),el("td",{},r[0]),el("td",{},r[1]),
+      el("td",{class:"n mono"},r[2]),el("td",{class:"n mono"},r[3]),
+      el("td",{class:"n"},numIn(i)))));
+    t.append(b);
+  } else if(it.build==="twist"){
+    t.append(el("thead",{},el("tr",{},["What happened","How it goes on the page"].map(h=>el("th",{},h)))));
+    const b=el("tbody");
+    TWIST.forEach((r,i)=>b.append(el("tr",{},el("td",{},r[0]),el("td",{class:"ctl",style:"min-width:215px"},mk(i,TWIST_OPTS)))));
+    t.append(b);
+  } else if(it.build==="arabic"){
+    t.append(el("thead",{},el("tr",{},["Line","Amount","How it goes on the page"].map((h,i)=>el("th",{class:i===1?"n":""},h)))));
+    const b=el("tbody");
+    ARROWS.forEach((r,i)=>b.append(el("tr",{},el("td",{class:"ar",style:"font-size:1.05rem"},r[0]),
+      el("td",{class:"n mono"},r[1]),el("td",{class:"ctl",style:"min-width:190px"},mk(i,AR_OPTS)))));
+    t.append(b);
+  }
+  wrap.append(t);return wrap;
+}
+/* ---------- submit ---------- */
+function confirmSubmit(){
+  const missing=[];
+  SECTIONS.forEach((s,i)=>{const a=answeredCount(s);if(a<s.items.length)missing.push(s.name+" ("+(s.items.length-a)+" left)");});
+  const box=el("div",{class:"wrap stack g24",style:"padding-top:40px;padding-bottom:80px"});
+  box.append(el("h2",{},"Ready to finish?"),
+    el("p",{class:"prose",style:"color:var(--ink-2)"},"Once you submit, your answers are locked and scored."));
+  if(missing.length)box.append(el("div",{class:"note warn stack g8"},
+    el("h3",{},"Some questions are still blank"),
+    el("p",{class:"small"},missing.join(" · ")),
+    el("p",{class:"small"},"An unanswered question scores zero, so it is worth going back and putting something down.")));
+  box.append(el("div",{class:"row"},
+    el("button",{onclick:()=>setStep(SECTIONS.length-1)},"Back to the paper"),
+    el("button",{class:"primary",onclick:()=>submit(false)},"Submit and score")));
+  $("#app").innerHTML="";$("#app").append(box);window.scrollTo(0,0);
+}
+async function submit(auto){
+  const g=gradeAll(A);
+  RESULT={name:NAME,submittedAt:new Date().toISOString(),
+    durationSec:STARTED?Math.floor((Date.now()-STARTED)/1000):null,
+    timedOut:!!auto,answers:A,sec:g.sec,auto:g.auto,autoMax:g.autoMax,bonus:g.bonus,bonusMax:g.bonusMax,
+    adjust:{}};
+  store.set("result",RESULT);
+  setStep(999);
+  saveSubmission();
+}
+/* the store takes plain JSON: undefined holes in the answer arrays are not */
+function jsonSafe(v){try{return JSON.parse(JSON.stringify(v,(k,x)=>x===undefined?null:x));}catch(e){return null;}}
+async function saveSubmission(){
+  const R=RESULT;if(!R)return;
+  const set=(cls,txt)=>{const b=$("#savestate");if(b){b.className="chip "+cls;b.textContent=txt;}};
+  const note=t=>{const n=$("#savenote");if(n)n.textContent=t;};
+  set("plain","Sending…");note("");
+  if(captureConfigured()){
+    try{
+      await postToForm(R);
+      SUB_ID=SUB_ID||("form-"+Date.now());store.set("subid",SUB_ID);SAVE_ERR=null;
+      set("ok","Sent to the interviewer");
+      const rb=$("#retrysave");if(rb)rb.hidden=true;
+      afterSave();return;
+    }catch(e){
+      SAVE_ERR=(e&&(e.code||e.message))||"could not reach the form";
+      set("warn","Not sent");
+      note("Your answers did not send automatically ("+SAVE_ERR+"). Use the buttons below to send them instead — nothing is lost.");
+      const rb=$("#retrysave");if(rb)rb.hidden=false;
+      afterSave();return;
+    }
+  }
+  try{
+    if(!DB)DB=await useCap("db");
+    if(!DB)throw{code:"the page cannot reach the store in this view"};
+    const payload=jsonSafe({name:R.name,submittedAt:R.submittedAt,durationSec:R.durationSec,
+      timedOut:!!R.timedOut,auto:R.auto,autoMax:R.autoMax,bonus:R.bonus,bonusMax:R.bonusMax,
+      sec:R.sec,answers:R.answers,adjust:{},reviewed:false});
+    if(!payload)throw{code:"the answers could not be packed"};
+    const ref=await DB.collection("submissions").add(payload);
+    SUB_ID=ref.id;store.set("subid",SUB_ID);SAVE_ERR=null;
+    set("ok","Saved for the interviewer");
+    const rb=$("#retrysave");if(rb)rb.hidden=true;
+    afterSave();
+  }catch(e){
+    SAVE_ERR=(e&&(e.code||e.message))||"unknown";
+    set("warn","Not saved");
+    note("This result did not reach the interviewer's list ("+SAVE_ERR+"). Your answers are safe in this browser — press Send again, or use Recover it in the bar above.");
+    const rb=$("#retrysave");if(rb)rb.hidden=false;
+    afterSave();
+  }
+}
+
+/* ---------- results ---------- */
+function resultsScreen(R,readonly){
+  R=R||RESULT;
+  const box=el("div",{class:"wrap stack g24",style:"padding-top:34px;padding-bottom:80px"});
+  const adj=R.adjust||{};
+  const written=[];SECTIONS.forEach(s=>s.items.forEach(it=>{if(it.type==="text")written.push(it);}));
+  const calc=()=>{
+    let a=0,b=0;
+    SECTIONS.forEach(s=>{let e=0;s.items.forEach(it=>{const g=gradeItem(it,R.answers[it.id]);e+=(adj[it.id]!==undefined?adj[it.id]:g.e);});
+      if(s.bonus)b+=e;else a+=e;});
+    return{a:Math.round(a*10)/10,b:Math.round(b*10)/10};
+  };
+  let sums=calc();
+  const pct=()=>Math.round(Math.min(100,sums.a+sums.b)*10)/10;
+  const band=p=>p>=80?["ok","Strong — can take the work over"]:p>=65?["warn","Workable with training"]:["neg","Below the bar"];
+
+  const bignum=el("div",{class:"bignum"},String(pct()));
+  const bandchip=el("span",{class:"chip "+band(pct())[0]},band(pct())[1]);
+  const savechip=el("span",{id:"savestate",class:"chip "+(readonly||SUB_ID?"ok":"plain")},readonly?"Saved":(SUB_ID?"Saved for the interviewer":"Saving…"));
+  box.append(el("div",{class:"stack g8"},
+    el("div",{class:"eyebrow"},readonly?"Submission":"Your result"),
+    el("h1",{},R.name||"Candidate"),
+    el("div",{class:"row small muted"},
+      new Date(R.submittedAt).toLocaleString(),
+      R.durationSec?"· "+Math.floor(R.durationSec/60)+" min taken":"",
+      R.timedOut?"· time ran out":"")));
+  const sumline=el("div",{class:"small muted"},"Auto-marked "+sums.a+" / "+TOTAL_PTS+" · bonus "+sums.b+" / "+BONUS_PTS);
+  const retry=el("button",{id:"retrysave",class:"tiny noprint",hidden:true,onclick:()=>saveSubmission()},"Send again");
+  const head=el("div",{class:"card pad"},
+    el("div",{class:"scorehead"},
+      el("div",{class:"stack",style:"gap:4px"},bignum,
+        el("div",{class:"tiny muted"},"out of "+TOTAL_PTS+", bonus included (max "+(TOTAL_PTS+BONUS_PTS)+")")),
+      el("div",{class:"stack g8",style:"flex:1;min-width:220px"},
+        bandchip,el("div",{class:"row"},savechip,readonly?null:retry),sumline,
+        el("p",{id:"savenote",class:"tiny muted"},""))));
+  box.append(head);
+
+  const barwrap=el("div",{class:"bars"});
+  const drawBars=()=>{
+    barwrap.innerHTML="";
+    SECTIONS.forEach(s=>{
+      let e=0;s.items.forEach(it=>{const g=gradeItem(it,R.answers[it.id]);e+=(adj[it.id]!==undefined?adj[it.id]:g.e);});
+      e=Math.round(e*10)/10;
+      const r=s.pts?e/s.pts:0;
+      barwrap.append(el("div",{class:"barrow"},
+        el("div",{class:"lbl"},s.name+(s.bonus?" (bonus)":"")),
+        el("div",{class:"track"},el("div",{class:"fill"+(r<0.5?" low":r<0.75?" mid":""),style:"width:"+Math.max(2,r*100)+"%"})),
+        el("div",{class:"val"},e+"/"+s.pts)));
+    });
+  };
+  drawBars();
+  box.append(el("div",{class:"card pad stack g16"},el("h3",{},"Where the points came from"),barwrap));
+
+  const refresh=()=>{sums=calc();bignum.textContent=String(pct());
+    const b=band(pct());bandchip.className="chip "+b[0];bandchip.textContent=b[1];
+    sumline.textContent="Auto-marked "+sums.a+" / "+TOTAL_PTS+" · bonus "+sums.b+" / "+BONUS_PTS;
+    drawBars();};
+
+  if(readonly){
+    const rv=el("div",{class:"card pad stack g16"});
+    rv.append(el("div",{class:"spread"},el("h3",{},"Written answers — your marks decide these"),
+      el("div",{class:"row"},sampleBtn(R,written,adj,refresh),
+        R.fromCode?null:el("button",{class:"primary tiny",onclick:async e=>{
+          e.target.textContent="Saving…";
+          try{ if(!DB)DB=await useCap("db");
+            await DB.doc("submissions/"+R._id).update({adjust:adj,reviewed:true});
+            e.target.textContent="Marks saved";}
+          catch(err){e.target.textContent="Could not save";}
+        }},"Save my marks"))));
+    written.forEach(it=>rv.append(writtenRow(it,R,adj,refresh)));
+    box.append(rv);
+  }else{
+    box.append(el("div",{class:"note warn"},
+      el("p",{class:"small"},el("b",{},"The five written answers carry a provisional mark only. "),
+        "They are scored on the words they contain, which is a rough guide — the interviewer reads them and sets the final mark.")));
+  }
+
+  const det=el("div",{class:"card",style:"padding:4px 22px 18px"});
+  const buildDetail=()=>{
+    det.innerHTML="";
+    const rev=readonly||REVEAL;
+    det.append(el("div",{class:"spread",style:"padding:18px 0 8px"},
+      el("h3",{},"Question by question"),
+      rev?el("span",{class:"tiny muted noprint"},"correct answers shown")
+         :el("button",{class:"tiny noprint",onclick:()=>{
+             const c=prompt("Interviewer code, to show the correct answers");
+             if(c===null)return;
+             if(c.trim().toUpperCase()!==REVIEW_CODE){alert("That code is not right.");return;}
+             REVEAL=true;buildDetail();
+           }},"Show correct answers")));
+    det.append(el("p",{class:"small muted",style:"padding-bottom:10px"},
+      rev?"Every question, the answer given, and the right one."
+         :"Every question with the answer you gave and whether it scored. Open a section to see it."));
+    SECTIONS.forEach(s=>{
+      let e=0;s.items.forEach(it=>{const g=gradeItem(it,R.answers[it.id]);e+=(adj[it.id]!==undefined?adj[it.id]:g.e);});
+      const wrong=s.items.filter(it=>{const g=gradeItem(it,R.answers[it.id]);
+        return (adj[it.id]!==undefined?adj[it.id]:g.e)<g.max;}).length;
+      const d=el("details",{open:wrong>0&&!readonly},el("summary",{},s.name,
+        el("span",{class:"tiny muted"},wrong?wrong+(wrong===1?" to look at":" to look at"):"all correct"),
+        el("span",{class:"mark "+(e>=s.pts*0.75?"ok":e>=s.pts*0.4?"part":"no"),style:"margin-left:auto"},Math.round(e*10)/10+" / "+s.pts)));
+      s.items.forEach(it=>d.append(detailRow(it,R,adj,rev,!readonly)));
+      det.append(d);
+    });
+  };
+  buildDetail();
+  box.append(det);
+  if(!readonly&&!R.fromCode)box.append(codeCard(R,true));
+
+  const actions=el("div",{class:"row noprint"},
+    el("button",{onclick:()=>window.print()},"Print / save as PDF"));
+  if(!readonly){
+    actions.append(el("button",{class:"ghost",onclick:()=>{
+      if(!confirm("Clear this result and start a new attempt on this computer?"))return;
+      ["answers","started","step","result","subid"].forEach(store.del);
+      A={};STARTED=null;RESULT=null;SUB_ID=null;setStep(-1);
+    }},"Start a new attempt"));
+  }else{
+    actions.append(el("button",{class:"ghost",onclick:()=>openReviewer()},"Back to submissions"));
+  }
+  box.append(actions);
+  if(!readonly&&!SUB_ID)setTimeout(saveSubmission,80);
+  return box;
+}
+function writtenRow(it,R,adj,refresh){
+  const g=gradeItem(it,R.answers[it.id]);
+  const cur=()=>adj[it.id]!==undefined?adj[it.id]:g.e;
+  const val=el("span",{class:"mono small"},cur()+" / "+it.pts);
+  const steps=[0,0.5,1,1.5,2].filter(v=>v<=it.pts);
+  const stepper=el("div",{class:"stepper"});
+  const paint=()=>[...stepper.children].forEach(b=>b.classList.toggle("on",Number(b.dataset.v)===cur()));
+  steps.forEach(v=>{const b=el("button",{"data-v":v},String(v));
+    b.addEventListener("click",()=>{adj[it.id]=v;val.textContent=cur()+" / "+it.pts;paint();refresh();});stepper.append(b);});
+  paint();
+  return el("div",{class:"rev stack g8"},
+    el("div",{class:"spread"},el("div",{class:"row"},el("span",{class:"q-id"},it.id),el("b",{class:"ui small"},"Scenario")),
+      el("div",{class:"row"},val,stepper)),
+    el("p",{class:"small",html:it.q}),
+    el("div",{class:"ans"},R.answers[it.id]||"— not answered —"),
+    el("details",{},el("summary",{style:"border:0;padding:6px 0;font-size:.85rem"},"Model answer"),
+      el("div",{class:"ansmodel small"},it.model)),
+    el("div",{id:"ai-"+it.id}));
+}
+function sampleBtn(R,written,adj,refresh){
+  const b=el("button",{class:"tiny",hidden:true},"Mark the five with Claude");
+  useCap("sample").then(s=>{
+    if(!s)return;b.hidden=false;
+    b.addEventListener("click",async()=>{
+      b.disabled=true;b.textContent="Marking…";
+      for(const it of written){
+        const slot=$("#ai-"+it.id);if(slot)slot.innerHTML="";
+        const ans=R.answers[it.id];
+        if(!ans){continue;}
+        try{
+          const out=await s.json(
+            "You are marking one answer in a hiring test for a travel-agency accounts assistant.\n\n"+
+            "QUESTION: "+it.q.replace(/<[^>]+>/g,"")+"\n\nMODEL ANSWER: "+it.model+
+            "\n\nCANDIDATE ANSWER: "+ans+
+            "\n\nMark out of "+it.pts+" in steps of 0.5. Reward the right order of actions, naming a real check, and refusing what should be refused. Ignore spelling and grammar."+
+            ' Reply as JSON only: {"score": number, "note": "one short sentence"}',
+            {modelTier:"default"});
+          const sc=Math.max(0,Math.min(it.pts,Math.round(Number(out.score)*2)/2));
+          adj[it.id]=sc;refresh();
+          if(slot)slot.append(el("p",{class:"tiny",style:"color:var(--muted);padding-top:4px"},"Claude: "+sc+" / "+it.pts+" — "+(out.note||"")));
+          const row=slot.closest(".rev");
+          if(row){row.querySelector(".mono.small").textContent=sc+" / "+it.pts;
+            [...row.querySelectorAll(".stepper button")].forEach(x=>x.classList.toggle("on",Number(x.dataset.v)===sc));}
+        }catch(e){if(slot)slot.append(el("p",{class:"tiny",style:"color:var(--warn)"},"Claude could not mark this one — use the buttons."));}
+      }
+      b.textContent="Marked — check and adjust";b.disabled=false;
+    });
+  }).catch(()=>{});
+  return b;
+}
+function detailRow(it,R,adj,reveal,mine){
+  const g=gradeItem(it,R.answers[it.id]);
+  const e=adj[it.id]!==undefined?adj[it.id]:g.e;
+  const st=e>=g.max?"ok":e>0?"part":"no";
+  const mineLbl=mine?"Your answer":"Their answer";
+  const n=el("div",{class:"rev stack g8"});
+  n.append(el("div",{class:"spread"},
+    el("div",{class:"row"},el("span",{class:"q-id"},it.id),
+      el("span",{class:"mark "+st},e+" / "+g.max),
+      el("span",{class:"tiny muted"},st==="ok"?"right":st==="part"?"partly right":"wrong")),
+    el("span",{class:"tiny muted"},it.type==="text"?"marked by hand":"")));
+  n.append(el("p",{class:"small",html:it.q}));
+  if(g.rows){
+    const t=el("table",{style:"font-size:.8rem"});
+    const heads=reveal?["Item",mineLbl,"Correct"]:["Item",mineLbl,""];
+    t.append(el("thead",{},el("tr",{},heads.map(h=>el("th",{},h)))));
+    const b=el("tbody");
+    g.rows.forEach(r=>b.append(el("tr",{},el("td",{},r.l),
+      el("td",{style:r.ok?"":"color:var(--neg)"},String(r.g)),
+      reveal?el("td",{},String(r.a)):el("td",{style:"color:"+(r.ok?"var(--ok)":"var(--neg)")},r.ok?"right":"wrong"))));
+    t.append(b);n.append(el("div",{class:"tablewrap"},t));
+  }else{
+    const cells=[el("div",{class:"stack g8",style:"flex:1;min-width:230px"},
+      el("div",{class:"tiny eyebrow"},mineLbl),el("div",{class:"ans"},String(g.given??"—")))];
+    if(reveal)cells.push(el("div",{class:"stack g8",style:"flex:1;min-width:230px"},
+      el("div",{class:"tiny eyebrow"},it.type==="text"?"Model answer":"Correct"),
+      el("div",{class:"ansmodel"},String(g.want??"—"))));
+    n.append(el("div",{class:"row",style:"align-items:stretch;gap:10px;flex-wrap:wrap"},cells));
+  }
+  if(reveal&&it.why&&it.type!=="text")n.append(el("p",{class:"tiny muted"},it.why));
+  return n;
+}
+
+/* ---------- automatic capture ---------- */
+function captureConfigured(){return !!(FORM_POST&&FORM_CODE);}
+async function postToForm(R){
+  /* Google answers a cross-site form post opaquely, so a resolved fetch is the
+     only signal available. The copy and email buttons stay on screen regardless. */
+  const body=new URLSearchParams();
+  body.append(FORM_CODE,encodeResult(R));
+  if(FORM_NAME)body.append(FORM_NAME,(R&&R.name)||store.get("name","")||"");
+  await fetch(FORM_POST,{method:"POST",mode:"no-cors",body:body,
+    headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+}
+
+/* ---------- result code: works with no store at all ---------- */
+function encodeResult(R){
+  const r=R||store.get("result",null)||{};
+  const payload={v:1,n:r.name||store.get("name",""),t:r.submittedAt||null,
+    d:r.durationSec??null,o:!!r.timedOut,a:r.answers||store.get("answers",{})};
+  const json=JSON.stringify(payload,(k,x)=>x===undefined?null:x);
+  const bytes=new TextEncoder().encode(json);
+  let bin="";bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return "SDA1-"+btoa(bin);
+}
+function decodeResult(code){
+  let txt=String(code||"").trim();
+  if(!txt)throw new Error("nothing pasted");
+  let p;
+  if(txt.charAt(0)==="{"){p=JSON.parse(txt);}
+  else{
+    const b64=txt.replace(/\s+/g,"").replace(/^SDA1-/,"");
+    const bin=atob(b64);
+    p=JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,ch=>ch.charCodeAt(0))));
+  }
+  const answers=p.a||p.answers;
+  if(!answers||typeof answers!=="object")throw new Error("that code carries no answers");
+  const g=gradeAll(answers);
+  return{name:p.n||p.name||"Candidate",submittedAt:p.t||p.at||new Date().toISOString(),
+    durationSec:(p.d??p.dur??null),timedOut:!!(p.o||p.timedOut),answers:answers,
+    sec:g.sec,auto:g.auto,autoMax:g.autoMax,bonus:g.bonus,bonusMax:g.bonusMax,adjust:{},fromCode:true};
+}
+function codeCard(R,forCandidate){
+  const code=encodeResult(R);
+  const who=(R&&R.name)||store.get("name","")||"a candidate";
+  const ta=el("textarea",{id:"recovbox",readonly:true,spellcheck:"false",
+    style:"min-height:110px",onclick:e=>{e.target.focus();e.target.select();}});
+  ta.value=code;
+  const said=el("span",{class:"tiny muted"},"");
+  const copy=el("button",{class:forCandidate?"":"primary",onclick:async()=>{
+    ta.focus();ta.select();
+    let ok=false;
+    try{await navigator.clipboard.writeText(ta.value);ok=true;}catch(e){try{ok=document.execCommand("copy");}catch(e2){}}
+    said.textContent=ok?"Copied. Paste it into your reply.":"Press Ctrl+C now, the text is selected.";
+  }},"Copy the code instead");
+  const row=el("div",{class:"row"});
+  /* mailto carries the whole code when it fits; browsers start dropping long ones */
+  const href="mailto:"+RETURN_EMAIL+"?subject="+encodeURIComponent("Supplier desk test - "+who)
+    +"&body="+encodeURIComponent("My finished test is below.\n\nName: "+who+"\n\n"+code+"\n");
+  if(forCandidate&&href.length<1900){
+    row.append(el("a",{href:href,class:"ui",style:"text-decoration:none"},
+      el("button",{class:"primary"},"Email my answers")));
+  }
+  row.append(copy,said);
+  return el("div",{class:"card pad stack g12 noprint"},
+    el("h3",{},forCandidate?"Send your answers back":"Result code"),
+    el("p",{class:"small",style:"color:var(--ink-2)"},
+      forCandidate?(captureConfigured()
+        ?"Your answers have been sent. If the screen above says they were not, use these to send them by hand — the code carries every answer you gave."
+        :"This code carries every answer you gave, and it is the only thing the interviewer needs. Email it with the button below, or copy it and send it however you were given the test.")
+                  :"A copy of this attempt as a single line of text."),
+    ta,row);
+}
+
+/* ---------- recovery ---------- */
+function unsent(){return !!store.get("result",null)&&!store.get("subid",null);}
+function renderRecoverBar(){
+  const bar=$("#recoverbar");if(!bar)return;
+  bar.hidden=!unsent()||step===1001;
+}
+function afterSave(){
+  renderRecoverBar();
+  const st=$("#recstatus");
+  if(st)st.textContent=SUB_ID?"Sent. It is in the interviewer's list now — nothing else to do."
+    :"Still not sent ("+(SAVE_ERR||"unknown")+"). Copy the text below and paste it to Claude; that carries every answer.";
+  const c=$("#recchip");
+  if(c){c.className="chip "+(SUB_ID?"ok":"warn");c.textContent=SUB_ID?"sent":"not sent";}
+}
+function recoveryPayload(){
+  const r=store.get("result",null)||{};
+  return JSON.stringify({v:1,name:r.name||store.get("name",""),at:r.submittedAt||null,
+    dur:r.durationSec??null,timedOut:!!r.timedOut,
+    answers:r.answers||store.get("answers",{})});
+}
+function recoverScreen(){
+  const box=el("div",{class:"wrap stack g24",style:"padding-top:34px;padding-bottom:80px"});
+  const r=store.get("result",null)||{};
+  box.append(el("div",{class:"stack g8"},
+    el("div",{class:"eyebrow"},"Recover an attempt"),
+    el("h2",{},r.name?r.name+"'s answers":"Your answers"),
+    el("p",{class:"prose small",style:"color:var(--ink-2)"},
+      "This attempt is stored in this browser only. Sending it puts it in the interviewer's list; if that fails, the text box below carries everything.")));
+  const chip=el("span",{id:"recchip",class:"chip "+(SUB_ID?"ok":"plain")},SUB_ID?"sent":"not sent yet");
+  const status=el("p",{id:"recstatus",class:"small muted"},"Sending…");
+  const ta=el("textarea",{id:"recovbox",readonly:true,spellcheck:"false"});
+  ta.value=encodeResult();
+  const copied=el("span",{class:"tiny muted"},"");
+  const copyBtn=el("button",{class:"primary",onclick:async()=>{
+    ta.focus();ta.select();
+    let ok=false;
+    try{await navigator.clipboard.writeText(ta.value);ok=true;}catch(e){try{ok=document.execCommand("copy");}catch(e2){}}
+    copied.textContent=ok?"Copied — paste it into the chat with Claude.":"Could not copy automatically; the text is selected, press Ctrl+C.";
+  }},"Copy my answers");
+  box.append(el("div",{class:"card pad stack g16"},
+    el("div",{class:"row"},chip,el("button",{class:"tiny",onclick:()=>{saveSubmission();}},"Try sending again")),
+    status,
+    el("hr",{class:"rule"}),
+    el("div",{class:"stack g8"},
+      el("h3",{},"Copy-and-paste fallback"),
+      el("p",{class:"small muted"},"Everything you answered, as text. This always works, even when the list cannot be reached."),
+      ta,el("div",{class:"row"},copyBtn,copied))));
+  box.append(el("div",{class:"row noprint"},
+    el("button",{onclick:()=>setStep(store.get("result",null)?999:-1)},"Back to my result")));
+  setTimeout(()=>{if(!SUB_ID)saveSubmission();else afterSave();},60);
+  return box;
+}
+
+/* ---------- interviewer ---------- */
+let SUBS=null;
+function openReviewer(){
+  const code=prompt("Interviewer code");
+  if(code===null)return;
+  if(code.trim().toUpperCase()!==REVIEW_CODE){alert("That code is not right.");return;}
+  setStep(1000);
+}
+function reviewerScreen(){
+  const box=el("div",{class:"wrap stack g24",style:"padding-top:34px;padding-bottom:80px"});
+  box.append(el("div",{class:"stack g8"},
+    el("div",{class:"eyebrow"},"Interviewer"),
+    el("h2",{},"Submissions"),
+    el("p",{class:"small muted"},"Every completed attempt, newest first. Open one to read the written answers and set their marks.")));
+  const paste=el("textarea",{placeholder:"Paste a result code here (it starts with SDA1-)",
+    style:"min-height:84px;font-family:'IBM Plex Mono',monospace;font-size:.74rem"});
+  const perr=el("span",{class:"tiny",style:"color:var(--neg)"},"");
+  box.append(el("div",{class:"card pad stack g12"},
+    el("h3",{},"Open a result code"),
+    el("p",{class:"small muted"},"When a candidate sends their code back, paste it here to mark it. This works whether or not the attempt reached the list below."),
+    paste,
+    el("div",{class:"row"},
+      el("button",{class:"primary",onclick:()=>{
+        perr.textContent="";
+        try{
+          const R=decodeResult(paste.value);
+          $("#app").innerHTML="";$("#app").append(resultsScreen(R,true));window.scrollTo(0,0);
+        }catch(e){perr.textContent="Could not read that code — "+(e&&e.message||"it looks incomplete")+".";}
+      }},"Mark this result"),perr)));
+  const list=el("div",{class:"sublist"},el("p",{class:"small muted"},"Loading…"));
+  box.append(el("div",{class:"stack g8"},el("div",{class:"eyebrow"},"Attempts that reached this list"),list));
+  box.append(el("div",{class:"row noprint"},el("button",{class:"ghost",onclick:()=>setStep(-1)},"Back to the start screen")));
+  (async()=>{
+    try{
+      if(!DB)DB=await useCap("db");
+      if(!DB){list.innerHTML="";list.append(el("div",{class:"note warn"},el("p",{class:"small"},"Saved submissions are not available in this view. A candidate can still show you their result screen, or print it.")));return;}
+      const snap=await DB.collection("submissions").orderBy("submittedAt","desc").limit(60).get();
+      list.innerHTML="";
+      if(snap.empty){list.append(el("p",{class:"small muted"},"No one has submitted yet."));return;}
+      snap.docs.forEach(d=>{
+        const s=d.data();
+        const tot=Math.round(((s.auto||0)+(s.bonus||0))*10)/10;
+        const b=tot>=80?"ok":tot>=65?"warn":"neg";
+        list.append(el("button",{class:"subrow",onclick:()=>{
+          const R={...s,_id:d.id,adjust:s.adjust||{}};
+          $("#app").innerHTML="";$("#app").append(resultsScreen(R,true));window.scrollTo(0,0);
+        }},
+          el("div",{class:"stack",style:"gap:2px"},el("b",{},s.name||"Unnamed"),
+            el("span",{class:"tiny muted"},new Date(s.submittedAt).toLocaleString()+(s.timedOut?" · time ran out":""))),
+          el("span",{class:"chip plain tiny"},s.reviewed?"marked":"needs marking"),
+          el("span",{class:"chip "+b},tot+" pts")));
+      });
+    }catch(e){list.innerHTML="";list.append(el("p",{class:"small muted"},"Could not load submissions."));}
+  })();
+  return box;
+}
+
+/* ---------- reference drawer ---------- */
+$("#refbtn").addEventListener("click",()=>{
+  const s=$("#sheet");s.innerHTML="";
+  s.append(el("div",{class:"spread"},el("h3",{},"Reference"),el("button",{class:"ghost",onclick:()=>$("#drawer").classList.remove("open")},"Close")),
+    el("div",{class:"stack g16",style:"padding-top:14px"},
+      el("div",{class:"stack g8"},el("div",{class:"eyebrow"},"Our ledger convention"),
+        el("ul",{class:"stack g8 small",style:"margin:0;padding-left:18px"},CONVENTION.map(c=>el("li",{html:c})))),
+      el("div",{class:"stack g8"},el("div",{class:"eyebrow"},"Arabic words, if you meet them"),
+        el("div",{class:"tablewrap"},(()=>{const t=el("table");t.append(el("thead",{},el("tr",{},[el("th",{},"Term"),el("th",{},"Meaning")])));
+          const b=el("tbody");ARABIC_GLOSS.forEach(r=>b.append(el("tr",{},el("td",{class:"ar"},r[0]),el("td",{},r[1]))));t.append(b);return t;})())),
+      el("div",{class:"stack g8"},el("div",{class:"eyebrow"},"Rate"),
+        el("p",{class:"small"},fmt0(FX)+" IQD to one US dollar."))));
+  $("#drawer").classList.add("open");
+});
+$("#drawer").addEventListener("click",e=>{if(e.target.dataset.close!==undefined)$("#drawer").classList.remove("open");});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#drawer").classList.remove("open");});
+
+$("#rb-btn").addEventListener("click",()=>setStep(1001));
+render();
+if(unsent())setTimeout(saveSubmission,500);
+</script>
+
+</body>
+</html>

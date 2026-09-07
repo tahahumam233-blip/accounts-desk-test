@@ -146,6 +146,74 @@ td.ar{font-family:"Segoe UI",Tahoma,sans-serif;direction:rtl;text-align:right;wh
 #recoverbar .rb-dot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex:none}
 #recoverbar button{margin-left:auto;border-color:var(--warn);color:var(--warn);background:transparent}
 #recovbox{width:100%;min-height:150px;font-family:"IBM Plex Mono",monospace;font-size:.72rem;line-height:1.45;white-space:pre;overflow:auto}
+/* ---------- the marked paper, one row per question ---------- */
+function plain(t){return String(t==null?"":t).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();}
+function markedRows(R,adj){
+  adj=adj||{};
+  const out=[];
+  SECTIONS.forEach(s=>{
+    s.items.forEach(it=>{
+      const g=gradeItem(it,R.answers[it.id]);
+      const got=adj[it.id]!==undefined?adj[it.id]:g.e;
+      let mine,ideal;
+      if(g.rows){
+        mine =g.rows.map(r=>r.l+": "+(r.g===undefined||r.g===null||r.g===""?"-":r.g)).join("  |  ");
+        ideal=g.rows.map(r=>r.l+": "+r.a).join("  |  ");
+      }else{
+        mine =plain(g.given===undefined||g.given===null?"":g.given);
+        ideal=plain(g.want===undefined||g.want===null?"":g.want);
+      }
+      out.push({id:it.id,section:s.name,q:plain(it.q),mine:mine||"(not answered)",ideal:ideal,
+                got:Math.round(got*10)/10,max:g.max,
+                verdict:got>=g.max?"right":got>0?"partly":"wrong",
+                written:it.type==="text"});
+    });
+  });
+  return out;
+}
+function markedPaperCard(R,adj){
+  const rows=markedRows(R,adj);
+  const wrap=el("div",{class:"tablewrap tall"});
+  const t=el("table");
+  t.append(el("thead",{},el("tr",{},["Q","Section","Question","Their answer","Ideal answer","Mark"]
+    .map((h,i)=>el("th",{class:i===5?"n":""},h)))));
+  const b=el("tbody");
+  rows.forEach(r=>{
+    const col=r.verdict==="right"?"var(--ok)":r.verdict==="partly"?"var(--warn)":"var(--neg)";
+    b.append(el("tr",{},
+      el("td",{class:"mono",style:"white-space:nowrap"},r.id),
+      el("td",{style:"white-space:nowrap;color:var(--muted)"},r.section),
+      el("td",{style:"min-width:230px"},r.q),
+      el("td",{style:"min-width:200px;color:"+col},r.mine),
+      el("td",{style:"min-width:200px"},r.ideal),
+      el("td",{class:"n mono",style:"white-space:nowrap;color:"+col},r.got+" / "+r.max)));
+  });
+  t.append(b);wrap.append(t);
+  const said=el("span",{class:"tiny muted"},"");
+  const copy=el("button",{class:"tiny",onclick:async()=>{
+    const head=["Q","Section","Question","Their answer","Ideal answer","Marked","Out of"].join("\t");
+    const body=rows.map(r=>[r.id,r.section,r.q,r.mine,r.ideal,r.got,r.max]
+      .map(v=>String(v).replace(/[\t\r\n]+/g," ")).join("\t")).join("\n");
+    const tsv=head+"\n"+body;
+    let ok=false;
+    try{await navigator.clipboard.writeText(tsv);ok=true;}catch(e){
+      const ta=el("textarea",{style:"position:fixed;left:-9999px"});ta.value=tsv;
+      document.body.append(ta);ta.select();
+      try{ok=document.execCommand("copy");}catch(e2){}
+      ta.remove();
+    }
+    said.textContent=ok?"Copied. Paste straight into Google Sheets or Excel."
+                       :"Could not copy. Select the table and copy it by hand.";
+  }},"Copy as a spreadsheet");
+  return el("div",{class:"card pad stack g12"},
+    el("div",{class:"spread"},
+      el("h3",{},"The marked paper"),
+      el("div",{class:"row noprint"},copy,said)),
+    el("p",{class:"small muted"},
+      "Every question in order, what they wrote, and what we were looking for. The three written scenarios are marked by a person, so treat their marks as a starting point."),
+    wrap);
+}
+
 /* ---------- results ---------- */
 .scorehead{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
 .bignum{font-family:Archivo,sans-serif;font-size:3.6rem;font-weight:700;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
@@ -478,7 +546,18 @@ const BONUS_PTS=SECTIONS.filter(s=>s.bonus).reduce((a,s)=>a+s.pts,0);
 /* ============================ grading ============================ */
 function gradeItem(it,v){
   const max=it.pts;
-  if(v===undefined||v===null||v===""||(Array.isArray(v)&&!v.length))return{e:0,max,state:"no",given:"— not answered —"};
+  const blank=(v===undefined||v===null||v===""||(Array.isArray(v)&&!v.length));
+  /* A skipped question still has to show what the right answer was - that is the
+     case an interviewer looks at hardest. multi/match/grid fall through instead,
+     because their normal path already renders an empty answer row by row. */
+  if(blank&&it.type!=="multi"&&it.type!=="match"&&it.type!=="grid"){
+    let want;
+    if(it.type==="mcq"||it.type==="select")want=it.opts[it.a];
+    else if(it.type==="num")want=fmt(it.a,it.a%1?1:0)+(it.unit?" "+it.unit:"");
+    else if(it.type==="formula")want=it.a;
+    else if(it.type==="text")want=it.model;
+    return{e:0,max,state:"no",given:"— not answered —",want:want,review:it.type==="text"};
+  }
   switch(it.type){
     case"mcq":case"select":{
       const ok=v===it.a;const list=it.type==="mcq"?it.opts:it.opts;
@@ -487,7 +566,7 @@ function gradeItem(it,v){
     case"num":{
       const n=Number(String(v).replace(/[, ]/g,""));
       const ok=isFinite(n)&&Math.abs(n-it.a)<=(it.tol??0);
-      return{e:ok?max:0,max,state:ok?"ok":"no",given:isFinite(n)?fmt(n,n%1?1:0):String(v),want:fmt(it.a,it.a%1?1:0)};
+      return{e:ok?max:0,max,state:ok?"ok":"no",given:isFinite(n)?fmt(n,n%1?1:0):String(v),want:fmt(it.a,it.a%1?1:0)+(it.unit?" "+it.unit:"")};
     }
     case"formula":{
       const c=String(v).toUpperCase().replace(/[\s$]/g,"");
@@ -509,7 +588,14 @@ function gradeItem(it,v){
       const per=max/it.a.length;let e=0;const rows=[];
       it.a.forEach((ans,i)=>{
         let g=(v||[])[i],ok;
-        if(typeof ans==="number"){const n=Number(String(g??"").replace(/[, ]/g,""));ok=isFinite(n)&&Math.abs(n-ans)<=0.06;g=isFinite(n)?String(g):(g||"—");}
+        if(typeof ans==="number"){
+          /* an empty cell is NOT zero: Number("") is 0, which would mark a blank
+             correct on any zero answer and print "undefined" in the report */
+          const raw=(g===undefined||g===null)?"":String(g).trim();
+          const n=raw===""?NaN:Number(raw.replace(/[, ]/g,""));
+          ok=isFinite(n)&&Math.abs(n-ans)<=0.06;
+          g=raw===""?"—":String(g);
+        }
         else ok=g===ans;
         if(ok)e+=per;rows.push({l:gridLabel(it,i),g:g||"—",a:typeof ans==="number"?fmt(ans,1):ans,ok});
       });
@@ -840,6 +926,74 @@ async function saveSubmission(){
   }
 }
 
+/* ---------- the marked paper, one row per question ---------- */
+function plain(t){return String(t==null?"":t).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();}
+function markedRows(R,adj){
+  adj=adj||{};
+  const out=[];
+  SECTIONS.forEach(s=>{
+    s.items.forEach(it=>{
+      const g=gradeItem(it,R.answers[it.id]);
+      const got=adj[it.id]!==undefined?adj[it.id]:g.e;
+      let mine,ideal;
+      if(g.rows){
+        mine =g.rows.map(r=>r.l+": "+(r.g===undefined||r.g===null||r.g===""?"-":r.g)).join("  |  ");
+        ideal=g.rows.map(r=>r.l+": "+r.a).join("  |  ");
+      }else{
+        mine =plain(g.given===undefined||g.given===null?"":g.given);
+        ideal=plain(g.want===undefined||g.want===null?"":g.want);
+      }
+      out.push({id:it.id,section:s.name,q:plain(it.q),mine:mine||"(not answered)",ideal:ideal,
+                got:Math.round(got*10)/10,max:g.max,
+                verdict:got>=g.max?"right":got>0?"partly":"wrong",
+                written:it.type==="text"});
+    });
+  });
+  return out;
+}
+function markedPaperCard(R,adj){
+  const rows=markedRows(R,adj);
+  const wrap=el("div",{class:"tablewrap tall"});
+  const t=el("table");
+  t.append(el("thead",{},el("tr",{},["Q","Section","Question","Their answer","Ideal answer","Mark"]
+    .map((h,i)=>el("th",{class:i===5?"n":""},h)))));
+  const b=el("tbody");
+  rows.forEach(r=>{
+    const col=r.verdict==="right"?"var(--ok)":r.verdict==="partly"?"var(--warn)":"var(--neg)";
+    b.append(el("tr",{},
+      el("td",{class:"mono",style:"white-space:nowrap"},r.id),
+      el("td",{style:"white-space:nowrap;color:var(--muted)"},r.section),
+      el("td",{style:"min-width:230px"},r.q),
+      el("td",{style:"min-width:200px;color:"+col},r.mine),
+      el("td",{style:"min-width:200px"},r.ideal),
+      el("td",{class:"n mono",style:"white-space:nowrap;color:"+col},r.got+" / "+r.max)));
+  });
+  t.append(b);wrap.append(t);
+  const said=el("span",{class:"tiny muted"},"");
+  const copy=el("button",{class:"tiny",onclick:async()=>{
+    const head=["Q","Section","Question","Their answer","Ideal answer","Marked","Out of"].join("\t");
+    const body=rows.map(r=>[r.id,r.section,r.q,r.mine,r.ideal,r.got,r.max]
+      .map(v=>String(v).replace(/[\t\r\n]+/g," ")).join("\t")).join("\n");
+    const tsv=head+"\n"+body;
+    let ok=false;
+    try{await navigator.clipboard.writeText(tsv);ok=true;}catch(e){
+      const ta=el("textarea",{style:"position:fixed;left:-9999px"});ta.value=tsv;
+      document.body.append(ta);ta.select();
+      try{ok=document.execCommand("copy");}catch(e2){}
+      ta.remove();
+    }
+    said.textContent=ok?"Copied. Paste straight into Google Sheets or Excel."
+                       :"Could not copy. Select the table and copy it by hand.";
+  }},"Copy as a spreadsheet");
+  return el("div",{class:"card pad stack g12"},
+    el("div",{class:"spread"},
+      el("h3",{},"The marked paper"),
+      el("div",{class:"row noprint"},copy,said)),
+    el("p",{class:"small muted"},
+      "Every question in order, what they wrote, and what we were looking for. The three written scenarios are marked by a person, so treat their marks as a starting point."),
+    wrap);
+}
+
 /* ---------- results ---------- */
 function resultsScreen(R,readonly){
   R=R||RESULT;
@@ -945,6 +1099,7 @@ function resultsScreen(R,readonly){
     });
   };
   buildDetail();
+  if(readonly||REVEAL)box.append(markedPaperCard(R,adj));
   box.append(det);
   if(!readonly&&!R.fromCode)box.append(codeCard(R,true));
 

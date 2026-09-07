@@ -591,8 +591,8 @@ function startScreen(){
   const box=el("div",{class:"wrap stack g24",style:"padding-top:44px;padding-bottom:64px"});
   box.append(
     el("div",{class:"stack g12"},
-      el("div",{class:"eyebrow"},"Sindibad Travels · Accounting assistant"),
-      el("h1",{},"Supplier accounts and payments — practical assessment"),
+      el("div",{class:"eyebrow"},"Sindibad Travels · Accounts desk"),
+      el("h1",{},"A short test for joining the accounts desk"),
       el("p",{class:"prose",style:"font-size:1.05rem;color:var(--ink-2)"},
         "You are not expected to know this work already. Every rule you need is written on the page, just above the questions that use it. What we are looking at is how fast you pick a rule up, whether you apply it without slipping, and whether you notice when something looks wrong.")
     )
@@ -863,9 +863,9 @@ function resultsScreen(R,readonly){
     el("div",{class:"eyebrow"},readonly?"Submission":"Your result"),
     el("h1",{},R.name||"Candidate"),
     el("div",{class:"row small muted"},
-      new Date(R.submittedAt).toLocaleString(),
-      R.durationSec?"· "+Math.floor(R.durationSec/60)+" min taken":"",
-      R.timedOut?"· time ran out":"")));
+      el("span",{},new Date(R.submittedAt).toLocaleString()),
+      R.durationSec?el("span",{},Math.floor(R.durationSec/60)+" min taken"):null,
+      R.timedOut?el("span",{style:"color:var(--warn)"},"time ran out"):null)));
   const sumline=el("div",{class:"small muted"},"Auto-marked "+sums.a+" / "+TOTAL_PTS+" · bonus "+sums.b+" / "+BONUS_PTS);
   const retry=el("button",{id:"retrysave",class:"tiny noprint",hidden:true,onclick:()=>saveSubmission()},"Send again");
   const head=el("div",{class:"card pad"},

@@ -1314,6 +1314,8 @@ function openFromHash(){
       el("button",{class:"primary",onclick:()=>{location.hash="";setStep(-1);}},"Go to the start")));
     return true;
   }
+  /* another tab may have signed in since this page loaded */
+  if(!REVEAL)REVEAL=store.get("reveal",false);
   if(!REVEAL){
     const c=prompt("Interviewer code, to open this result");
     if(c!==null&&c.trim().toUpperCase()===REVIEW_CODE){REVEAL=true;store.set("reveal",true);}
